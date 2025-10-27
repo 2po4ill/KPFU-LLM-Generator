@@ -1,0 +1,36 @@
+# Minimal requirements for development with mock services
+# Core framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+pydantic-settings>=2.1.0
+
+# Database (optional for mock mode)
+sqlalchemy>=2.0.0
+
+# Redis caching (optional for mock mode)
+redis>=5.0.0
+
+# Utilities
+aiofiles>=23.0.0
+httpx>=0.25.0
+python-multipart>=0.0.6
+psutil>=5.9.0
+
+# Mock LLM dependencies (lightweight versions)
+ollama>=0.1.0
+
+# Document processing
+PyPDF2>=3.0.0
+python-docx>=1.1.0
+pandas>=2.1.0
+openpyxl>=3.1.0
+python-magic-bin>=0.4.0  # File type detection (Windows)
+chardet>=5.2.0  # Character encoding detection
+
+# Development and Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+coverage>=7.3.0
+httpx>=0.25.0  # For TestClient
