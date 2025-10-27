@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # KPFU LLM Educational Content Generator
 
 A hybrid literature-grounded content generation system that creates verified educational materials (lectures and lab works) for KPFU professors using RPD curriculum files and the university's library database.
@@ -80,3 +81,6 @@ test.bat             # Interactive test menu
 ## 📄 License
 
 This project is developed for Kazan Federal University (KPFU) educational purposes.
+=======
+# KPFU-LLM-Generator
+>>>>>>> fbac096dc29994cea39e322678890c449d6c473b
