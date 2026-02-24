@@ -1,0 +1,193 @@
+{
+  "total_lectures": 12,
+  "successful": 11,
+  "failed": 1,
+  "total_time": 3131.246717453003,
+  "results": [
+    {
+      "number": 1,
+      "theme": "Введение в Python",
+      "success": true,
+      "time": 241.7040810585022,
+      "confidence": 1.0,
+      "words": 1861,
+      "chars": 13329,
+      "step_times": {
+        "step1_page_selection": 9.269964456558228,
+        "step2_content_generation": 220.89118576049805,
+        "step3_validation_formatting": 11.542892694473267
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 2,
+      "theme": "Основы синтаксиса и переменные",
+      "success": true,
+      "time": 296.8298490047455,
+      "confidence": 1.0,
+      "words": 2353,
+      "chars": 17311,
+      "step_times": {
+        "step1_page_selection": 8.26996660232544,
+        "step2_content_generation": 281.6101961135864,
+        "step3_validation_formatting": 6.949643611907959
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 3,
+      "theme": "Работа со строками",
+      "success": true,
+      "time": 296.6453812122345,
+      "confidence": 1.0,
+      "words": 2120,
+      "chars": 15811,
+      "step_times": {
+        "step1_page_selection": 8.202077150344849,
+        "step2_content_generation": 278.6366837024689,
+        "step3_validation_formatting": 9.806582689285278
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 4,
+      "theme": "Числа и математические операции",
+      "success": true,
+      "time": 290.66664719581604,
+      "confidence": 1.0,
+      "words": 2198,
+      "chars": 15393,
+      "step_times": {
+        "step1_page_selection": 8.892168283462524,
+        "step2_content_generation": 271.1110506057739,
+        "step3_validation_formatting": 10.663387060165405
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 5,
+      "theme": "Условные операторы",
+      "success": true,
+      "time": 288.6995143890381,
+      "confidence": 1.0,
+      "words": 2359,
+      "chars": 17251,
+      "step_times": {
+        "step1_page_selection": 8.942629098892212,
+        "step2_content_generation": 270.36880111694336,
+        "step3_validation_formatting": 9.388052701950073
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 6,
+      "theme": "Циклы",
+      "success": true,
+      "time": 328.0645680427551,
+      "confidence": 1.0,
+      "words": 2433,
+      "chars": 17492,
+      "step_times": {
+        "step1_page_selection": 9.34158730506897,
+        "step2_content_generation": 310.3459668159485,
+        "step3_validation_formatting": 8.376964330673218
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 7,
+      "theme": "Списки и кортежи",
+      "success": true,
+      "time": 250.47941255569458,
+      "confidence": 1.0,
+      "words": 1881,
+      "chars": 14268,
+      "step_times": {
+        "step1_page_selection": 8.574276208877563,
+        "step2_content_generation": 234.02274179458618,
+        "step3_validation_formatting": 7.882351636886597
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 8,
+      "theme": "Словари и множества",
+      "success": true,
+      "time": 257.96373295783997,
+      "confidence": 1.0,
+      "words": 2087,
+      "chars": 15767,
+      "step_times": {
+        "step1_page_selection": 8.419648885726929,
+        "step2_content_generation": 239.21979188919067,
+        "step3_validation_formatting": 10.324252605438232
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 9,
+      "theme": "Функции",
+      "success": true,
+      "time": 285.2256157398224,
+      "confidence": 1.0,
+      "words": 2418,
+      "chars": 18119,
+      "step_times": {
+        "step1_page_selection": 8.627262592315674,
+        "step2_content_generation": 267.41166710853577,
+        "step3_validation_formatting": 9.186648845672607
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 10,
+      "theme": "Модули и импорт",
+      "success": true,
+      "time": 281.75919103622437,
+      "confidence": 1.0,
+      "words": 1928,
+      "chars": 14476,
+      "step_times": {
+        "step1_page_selection": 8.28646969795227,
+        "step2_content_generation": 264.2406919002533,
+        "step3_validation_formatting": 9.231994390487671
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 11,
+      "theme": "Работа с файлами",
+      "success": true,
+      "time": 303.9120852947235,
+      "confidence": 1.0,
+      "words": 2108,
+      "chars": 15429,
+      "step_times": {
+        "step1_page_selection": 9.027158260345459,
+        "step2_content_generation": 286.623681306839,
+        "step3_validation_formatting": 8.26119351387024
+      },
+      "warnings": [],
+      "sources": 1
+    },
+    {
+      "number": 12,
+      "theme": "Основы ООП",
+      "success": false,
+      "time": 9.280775308609009,
+      "errors": [
+        "No relevant pages found in provided books"
+      ]
+    }
+  ]
+}

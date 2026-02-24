@@ -14,7 +14,7 @@ redis>=5.0.0
 hiredis>=2.2.0
 
 # Vector database
-chromadb>=0.4.0
+faiss-cpu>=1.7.4  # Use faiss-gpu if you have CUDA
 
 # LLM and embeddings
 ollama>=0.1.0
@@ -24,11 +24,14 @@ transformers>=4.30.0
 
 # Document processing
 PyPDF2==3.0.1
+pdfplumber>=0.10.3
 python-docx==1.1.0
 pandas==2.1.4
 openpyxl==3.1.2
 python-magic-bin==0.4.14  # File type detection (Windows)
 chardet==5.2.0  # Character encoding detection
+pymorphy2>=0.9.1  # Russian morphological analyzer for word segmentation
+pymorphy2-dicts-ru>=2.4.417127.4579844  # Russian dictionaries
 
 # Utilities
 python-multipart==0.0.6

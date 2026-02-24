@@ -31,7 +31,9 @@ class Settings(BaseSettings):
     
     # Model settings
     llm_model: str = "llama3.1:8b"
-    embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    # Russian-specific embedding model for better semantic matching
+    # Options: cointegrated/rubert-tiny2 (111MB), ai-forever/sbert_large_nlu_ru (1.1GB)
+    embedding_model: str = "cointegrated/rubert-tiny2"
     
     # Memory limits (in MB)
     max_llm_memory: int = 4700  # 4.7GB for Llama 3.1 8B

@@ -8,11 +8,15 @@ from fastapi.responses import JSONResponse
 from core.model_manager import ModelManager
 from core.cache import cache_manager
 from .rpd_routes import router as rpd_router
+from .literature_routes import router as literature_router
 
 router = APIRouter()
 
 # Include RPD processing routes
 router.include_router(rpd_router)
+
+# Include literature management routes
+router.include_router(literature_router)
 
 
 async def get_model_manager() -> ModelManager:

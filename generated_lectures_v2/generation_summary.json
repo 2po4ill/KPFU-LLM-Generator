@@ -1,0 +1,184 @@
+{
+  "course": "Основы программирования на Python",
+  "version": "v2",
+  "models": {
+    "toc_selection": "gemma3:27b",
+    "content_generation": "llama3.1:8b"
+  },
+  "total_lectures": 12,
+  "successful": 11,
+  "failed": 1,
+  "total_time_seconds": 1217.9924499988556,
+  "average_time_seconds": 110.72658636353232,
+  "generated_at": "2026-02-11T16:09:08.666722",
+  "results": [
+    {
+      "lecture_number": 1,
+      "theme": "Введение в Python",
+      "success": true,
+      "time": 124.18744230270386,
+      "confidence": 1.0,
+      "step_times": {
+        "step1_page_selection": 66.44910669326782,
+        "step2_content_generation": 46.39091968536377,
+        "step3_validation_formatting": 11.347382545471191
+      },
+      "file": "generated_lectures_v2\\lecture_01_Введение_в_Python.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 2,
+      "theme": "Основы синтаксиса и переменные",
+      "success": true,
+      "time": 113.77954292297363,
+      "confidence": 1.0,
+      "step_times": {
+        "step1_page_selection": 69.55265402793884,
+        "step2_content_generation": 35.49379587173462,
+        "step3_validation_formatting": 8.733062505722046
+      },
+      "file": "generated_lectures_v2\\lecture_02_Основы_синтаксиса_и_переменные.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 3,
+      "theme": "Строки и форматирование",
+      "success": true,
+      "time": 99.31163930892944,
+      "confidence": 0.1,
+      "step_times": {
+        "step1_page_selection": 58.59638500213623,
+        "step2_content_generation": 33.39913082122803,
+        "step3_validation_formatting": 7.316092491149902
+      },
+      "file": "generated_lectures_v2\\lecture_03_Строки_и_форматирование.md",
+      "warnings": [
+        "Low confidence score: 10.00% - content may contain hallucinations"
+      ]
+    },
+    {
+      "lecture_number": 4,
+      "theme": "Числа и математические операции",
+      "success": true,
+      "time": 105.44310760498047,
+      "confidence": 1.0,
+      "step_times": {
+        "step1_page_selection": 65.67130661010742,
+        "step2_content_generation": 31.258656978607178,
+        "step3_validation_formatting": 8.513108253479004
+      },
+      "file": "generated_lectures_v2\\lecture_04_Числа_и_математические_операции.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 5,
+      "theme": "Условные операторы",
+      "success": false,
+      "errors": [
+        "No relevant pages found in provided books"
+      ]
+    },
+    {
+      "lecture_number": 6,
+      "theme": "Циклы",
+      "success": true,
+      "time": 85.86579203605652,
+      "confidence": 0.9,
+      "step_times": {
+        "step1_page_selection": 55.39219641685486,
+        "step2_content_generation": 21.92343831062317,
+        "step3_validation_formatting": 8.55012583732605
+      },
+      "file": "generated_lectures_v2\\lecture_06_Циклы.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 7,
+      "theme": "Списки и кортежи",
+      "success": true,
+      "time": 109.26716828346252,
+      "confidence": 0.6,
+      "step_times": {
+        "step1_page_selection": 60.8726589679718,
+        "step2_content_generation": 39.969642877578735,
+        "step3_validation_formatting": 8.424835443496704
+      },
+      "file": "generated_lectures_v2\\lecture_07_Списки_и_кортежи.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 8,
+      "theme": "Словари и множества",
+      "success": true,
+      "time": 99.16369271278381,
+      "confidence": 0.9,
+      "step_times": {
+        "step1_page_selection": 60.80865240097046,
+        "step2_content_generation": 30.81659245491028,
+        "step3_validation_formatting": 7.53840446472168
+      },
+      "file": "generated_lectures_v2\\lecture_08_Словари_и_множества.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 9,
+      "theme": "Функции",
+      "success": true,
+      "time": 131.08960342407227,
+      "confidence": 0.9,
+      "step_times": {
+        "step1_page_selection": 56.995885372161865,
+        "step2_content_generation": 65.81954169273376,
+        "step3_validation_formatting": 8.27415156364441
+      },
+      "file": "generated_lectures_v2\\lecture_09_Функции.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 10,
+      "theme": "Модули и импорт",
+      "success": true,
+      "time": 97.72655153274536,
+      "confidence": 0.9,
+      "step_times": {
+        "step1_page_selection": 60.19322323799133,
+        "step2_content_generation": 28.614100694656372,
+        "step3_validation_formatting": 8.919203519821167
+      },
+      "file": "generated_lectures_v2\\lecture_10_Модули_и_импорт.md",
+      "warnings": []
+    },
+    {
+      "lecture_number": 11,
+      "theme": "Работа с файлами",
+      "success": true,
+      "time": 112.68253898620605,
+      "confidence": 0.1,
+      "step_times": {
+        "step1_page_selection": 57.72851204872131,
+        "step2_content_generation": 39.694822549819946,
+        "step3_validation_formatting": 15.25916314125061
+      },
+      "file": "generated_lectures_v2\\lecture_11_Работа_с_файлами.md",
+      "warnings": [
+        "Low confidence score: 10.00% - content may contain hallucinations"
+      ]
+    },
+    {
+      "lecture_number": 12,
+      "theme": "Основы ООП",
+      "success": true,
+      "time": 139.47537088394165,
+      "confidence": 0.2,
+      "step_times": {
+        "step1_page_selection": 82.05088520050049,
+        "step2_content_generation": 46.367177963256836,
+        "step3_validation_formatting": 11.057282209396362
+      },
+      "file": "generated_lectures_v2\\lecture_12_Основы_ООП.md",
+      "warnings": [
+        "Low confidence score: 20.00% - content may contain hallucinations"
+      ]
+    }
+  ]
+}

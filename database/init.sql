@@ -1,34 +1,57 @@
 -- KPFU LLM Generator Database Initialization
--- Optimized indexes for performance
+-- Simplified schema: Only generated content + literature cache
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- Create optimized indexes after table creation
--- These will be created automatically by SQLAlchemy, but we can add additional optimizations
+-- Generated content table
+CREATE TABLE IF NOT EXISTS generated_content (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_fingerprint VARCHAR(16) NOT NULL,
+    request_data JSONB NOT NULL,
+    content_type VARCHAR(50) NOT NULL,
+    theme_title VARCHAR(500) NOT NULL,
+    content TEXT NOT NULL,
+    citations JSONB,
+    sources_used JSONB,
+    generation_time_seconds FLOAT,
+    confidence_score FLOAT,
+    created_date TIMESTAMP DEFAULT NOW()
+);
 
--- Composite indexes for common queries
-CREATE INDEX IF NOT EXISTS idx_rpd_subject_degree ON rpd_documents(subject_title, academic_degree);
-CREATE INDEX IF NOT EXISTS idx_rpd_profession_degree ON rpd_documents(profession, academic_degree);
+-- Literature cache table
+CREATE TABLE IF NOT EXISTS literature_cache (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    authors VARCHAR(500) NOT NULL,
+    title VARCHAR(1000) NOT NULL,
+    kpfu_available BOOLEAN DEFAULT FALSE,
+    kpfu_book_id VARCHAR(100),
+    year INTEGER,
+    publisher VARCHAR(500),
+    pages_total INTEGER,
+    table_of_contents JSONB,
+    keyword_index JSONB,
+    last_accessed TIMESTAMP DEFAULT NOW(),
+    access_count INTEGER DEFAULT 0
+);
 
--- Full-text search indexes for literature
-CREATE INDEX IF NOT EXISTS idx_literature_title_gin ON literature_references USING gin(to_tsvector('russian', title));
-CREATE INDEX IF NOT EXISTS idx_literature_authors_gin ON literature_references USING gin(to_tsvector('russian', authors));
+-- Indexes for generated_content
+CREATE INDEX IF NOT EXISTS idx_fingerprint ON generated_content(request_fingerprint);
+CREATE INDEX IF NOT EXISTS idx_content_type ON generated_content(content_type);
+CREATE INDEX IF NOT EXISTS idx_theme_title ON generated_content(theme_title);
+CREATE INDEX IF NOT EXISTS idx_created_date ON generated_content(created_date);
 
--- Partial indexes for performance
-CREATE INDEX IF NOT EXISTS idx_literature_available ON literature_references(kpfu_available) WHERE kpfu_available = true;
-CREATE INDEX IF NOT EXISTS idx_content_pending_review ON generated_content(requires_review) WHERE requires_review = true;
-CREATE INDEX IF NOT EXISTS idx_content_approved ON generated_content(approved) WHERE approved = true;
+-- Indexes for literature_cache
+CREATE INDEX IF NOT EXISTS idx_lit_title ON literature_cache(title);
+CREATE INDEX IF NOT EXISTS idx_lit_authors ON literature_cache(authors);
+CREATE INDEX IF NOT EXISTS idx_lit_kpfu_id ON literature_cache(kpfu_book_id);
+CREATE INDEX IF NOT EXISTS idx_lit_available ON literature_cache(kpfu_available) WHERE kpfu_available = true;
 
--- Cache cleanup index
-CREATE INDEX IF NOT EXISTS idx_cache_cleanup ON cache_entries(expires_date) WHERE expires_date < NOW();
+-- Full-text search indexes
+CREATE INDEX IF NOT EXISTS idx_literature_title_gin ON literature_cache USING gin(to_tsvector('russian', title));
+CREATE INDEX IF NOT EXISTS idx_literature_authors_gin ON literature_cache USING gin(to_tsvector('russian', authors));
 
 -- Performance settings
-ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements';
-ALTER SYSTEM SET track_activity_query_size = 2048;
-ALTER SYSTEM SET log_min_duration_statement = 1000;
-
--- Restart required for some settings, but these can be set immediately
 SET work_mem = '64MB';
 SET maintenance_work_mem = '256MB';
 SET effective_cache_size = '1GB';

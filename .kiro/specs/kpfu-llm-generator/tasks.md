@@ -22,37 +22,39 @@
 
 
 
-- [ ] 2. Implement RPD processing and parsing system
-  - [ ] 2.1 Create multi-format RPD parser
-    - Build PDF parser using PyPDF2 for extracting text from RPD documents
-    - Implement Word document parser using python-docx
-    - Create Excel parser for structured RPD data using pandas
-
-    - Add automatic file type detection and routing
-    - Write unit tests for each parser type with sample RPD files
+- [x] 2. Implement RPD data input and validation system
+  - [x] 2.1 Create API endpoint for RPD data input
+    - Build POST endpoint to accept RPD data as JSON from external sources (Telegram bot, web form, etc.)
+    - Define RPD data schema (title, degree, profession, hours, themes, labs, literature)
+    - Implement request validation using Pydantic models
+    - Add error handling for malformed or incomplete RPD data
+    - Generate request fingerprint for content retrieval
+    - Write unit tests for API endpoint with various input scenarios
     - _Requirements: 1.1, 1.4_
 
-  - [ ] 2.2 Implement LLM-based structured data extraction
-    - Create prompt templates for extracting RPD fields (title, degree, profession, hours, themes, labs, literature)
-    - Implement structured data extraction using Qwen:14b with JSON output formatting
-    - Add validation logic for required fields and data completeness
-    - Create error handling for malformed or incomplete RPD data
-    - Write tests with various RPD formats and edge cases
+  - [x] 2.2 Implement simplified database storage
+    - Create simplified database schema (generated_content + literature_cache only)
+    - Implement request fingerprint generation for tracking
+    - Add content retrieval endpoints by fingerprint
+    - Remove unnecessary RPD document storage (input only)
+    - Write tests for database operations and data integrity
     - _Requirements: 1.1, 1.2_
 
-- [ ] 3. Build literature validation and retrieval system
-  - [ ] 3.1 Create KPFU library database integration
-    - Implement database connector for KPFU library system
-    - Create search functionality for books and articles by title and author
-    - Add full-text retrieval capabilities for verified literature
-    - Implement literature availability validation against RPD references
-    - Write integration tests with mock KPFU database
+- [ ] 3. Build literature management and processing system
+  - [ ] 3.1 Create book upload and storage system
+    - Build API endpoint for uploading PDF books
+    - Implement book metadata extraction (title, authors, year)
+    - Link uploaded books to RPD literature references
+    - Store books in file system with unique IDs
+    - Create book listing and deletion endpoints
+    - Write tests for book upload and management
     - _Requirements: 2.1, 2.3_
 
-  - [ ] 3.2 Implement document processing and vector storage
-    - Create document chunking system for large texts (1000-character chunks with overlap)
-    - Implement multilingual sentence embeddings using SentenceTransformers
-    - Set up ChromaDB vector store for semantic search capabilities
+  - [ ] 3.2 Implement PDF processing and vector storage
+    - Create PDF text extraction using PyPDF2
+    - Implement document chunking system (1000-character chunks with overlap)
+    - Generate multilingual sentence embeddings using SentenceTransformers
+    - Set up ChromaDB vector store for semantic search
     - Add document indexing and retrieval functionality
     - Create similarity search with relevance scoring
     - Write tests for document retrieval accuracy and performance

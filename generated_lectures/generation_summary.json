@@ -1,0 +1,108 @@
+{
+  "course": "Основы программирования на Python",
+  "fingerprint": "7abf3398ac8bbb26",
+  "total_lectures": 12,
+  "successful": 12,
+  "failed": 0,
+  "total_time_seconds": 648.701780796051,
+  "average_time_seconds": 54.05848173300425,
+  "generated_at": "2026-02-11T08:24:16.909682",
+  "results": [
+    {
+      "lecture_number": 1,
+      "theme": "Введение в Python",
+      "success": true,
+      "time": 41.692939043045044,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_01_Введение_в_Python.md"
+    },
+    {
+      "lecture_number": 2,
+      "theme": "Основы синтаксиса и переменные",
+      "success": true,
+      "time": 36.14614200592041,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_02_Основы_синтаксиса_и_переменные.md"
+    },
+    {
+      "lecture_number": 3,
+      "theme": "Строки и форматирование",
+      "success": true,
+      "time": 41.02811121940613,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_03_Строки_и_форматирование.md"
+    },
+    {
+      "lecture_number": 4,
+      "theme": "Числа и математические операции",
+      "success": true,
+      "time": 47.73926568031311,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_04_Числа_и_математические_операции.md"
+    },
+    {
+      "lecture_number": 5,
+      "theme": "Условные операторы",
+      "success": true,
+      "time": 39.83075141906738,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_05_Условные_операторы.md"
+    },
+    {
+      "lecture_number": 6,
+      "theme": "Циклы",
+      "success": true,
+      "time": 45.25178575515747,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_06_Циклы.md"
+    },
+    {
+      "lecture_number": 7,
+      "theme": "Списки и кортежи",
+      "success": true,
+      "time": 61.88043832778931,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_07_Списки_и_кортежи.md"
+    },
+    {
+      "lecture_number": 8,
+      "theme": "Словари и множества",
+      "success": true,
+      "time": 71.71445083618164,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_08_Словари_и_множества.md"
+    },
+    {
+      "lecture_number": 9,
+      "theme": "Функции",
+      "success": true,
+      "time": 68.66689157485962,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_09_Функции.md"
+    },
+    {
+      "lecture_number": 10,
+      "theme": "Модули и импорт",
+      "success": true,
+      "time": 66.5872004032135,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_10_Модули_и_импорт.md"
+    },
+    {
+      "lecture_number": 11,
+      "theme": "Работа с файлами",
+      "success": true,
+      "time": 47.69591498374939,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_11_Работа_с_файлами.md"
+    },
+    {
+      "lecture_number": 12,
+      "theme": "Основы ООП",
+      "success": true,
+      "time": 80.46788954734802,
+      "confidence": 0.0,
+      "file": "generated_lectures\\lecture_12_Основы_ООП.md"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+Here is the list of entries in the format you requested:
+
+1. Introduction to Python → Page 1
+2. Basic Syntax → Page 3
+3. Variables and Data Types → Page 5
+4. Operators → Page 9
+5. Control Structures → Page 13
+6. Functions → Page 17
+7. Modules → Page 21
+8. Object-Oriented Programming → Page 25
+9. Classes and Objects → Page 29
+10. Inheritance → Page 33
+11. Polymorphism → Page 37
+12. Encapsulation → Page 41
+13. Abstraction → Page 45
+14. Exception Handling → Page 49
+15. File Input/Output → Page 53
+16. Pickle → Page 57
+17. Regular Expressions → Page 61
+18. Debugging → Page 65
+19. Testing → Page 69
+20. Version Control → Page 73
+
+Let me know if you'd like me to continue with the rest of the entries!

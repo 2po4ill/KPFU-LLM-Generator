@@ -23,7 +23,7 @@ try:
 except ImportError:
     torch = None
 
-from core.config import settings
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -228,7 +228,14 @@ class ModelManager:
             client = ollama.AsyncClient(host=settings.ollama_url)
             models = await client.list()
             
-            available_models = [model['name'] for model in models.get('models', [])]
+            # Handle different model list formats
+            model_list = models.get('models', [])
+            available_models = []
+            for model in model_list:
+                # Try different keys for model name
+                model_name = model.get('model', model.get('name', ''))
+                if model_name:
+                    available_models.append(model_name)
             
             if settings.llm_model not in available_models:
                 logger.info(f"Pulling model {settings.llm_model}...")
