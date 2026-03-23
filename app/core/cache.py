@@ -192,10 +192,28 @@ class CacheManager:
         """Invalidate cache entries matching pattern"""
         if self.redis_client:
             try:
-                keys = await self.redis_client.keys(f"*{pattern}*")
-                if keys:
-                    await self.redis_client.delete(*keys)
-                    logger.info(f"Invalidated {len(keys)} cache entries matching pattern: {pattern}")
+                match_pattern = f"*{pattern}*"
+                cursor = 0
+                deleted = 0
+
+                # Avoid KEYS (O(N) blocking). Use incremental SCAN instead.
+                while True:
+                    cursor, keys = await self.redis_client.scan(
+                        cursor=cursor,
+                        match=match_pattern,
+                        count=1000
+                    )
+                    if keys:
+                        await self.redis_client.delete(*keys)
+                        deleted += len(keys)
+
+                    if cursor == 0:
+                        break
+
+                if deleted:
+                    logger.info(
+                        f"Invalidated {deleted} cache entries matching pattern: {pattern}"
+                    )
             except Exception as e:
                 logger.error(f"Cache invalidation error: {e}")
         

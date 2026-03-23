@@ -6,6 +6,9 @@ import logging
 import time
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+from pathlib import Path
+
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +252,10 @@ class ContentGenerator:
         for book in relevant_books:
             # Load book to get TOC pages
             # TODO: Store book path in metadata to avoid hardcoding
-            book_path = 'питон_мок_дата.pdf'  # Temporary hardcode
+            book_path = Path("app/cache/books") / f"{book['book_id']}.pdf"
+            if not book_path.exists():
+                logger.warning(f"Book file not found for book_id={book['book_id']}: {book_path}")
+                continue
             pages_data = self.pdf_processor.extract_text_from_pdf(book_path)
             
             if not pages_data['success']:
@@ -363,7 +369,7 @@ class ContentGenerator:
             llm_model = await self.model_manager.get_llm_model()
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=prompt,
                 options={
                     "temperature": 0.1,
@@ -479,7 +485,7 @@ class ContentGenerator:
             
             # Generate content with increased token limit and context window
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=prompt,
                 options={
                     "temperature": 0.3,  # Lower temperature for factual content
@@ -613,7 +619,7 @@ class ContentGenerator:
 Максимум 10 наиболее важных утверждений."""
 
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=extraction_prompt,
                 options={
                     "temperature": 0.1,  # Low temperature for precise extraction

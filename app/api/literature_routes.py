@@ -9,13 +9,57 @@ from pathlib import Path
 import tempfile
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request, status
 from fastapi.responses import JSONResponse
+from core.model_manager import ModelManager
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/literature", tags=["Literature Management"])
+
+
+async def require_api_key(request: Request = None):
+    """Optional API-key auth (disabled unless settings.api_key is set)."""
+    from core.config import settings
+
+    if request is None:
+        return
+
+    if not settings.api_key:
+        return
+
+    provided = request.headers.get("X-API-Key")
+    if provided != settings.api_key:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+
+async def require_rate_limit(request: Request = None, route_key: str = ""):
+    """Optional in-process rate limiting for heavy endpoints."""
+    from core.config import settings
+    from core.rate_limiter import rate_limiter
+
+    if request is None:
+        return
+
+    if not settings.enable_rate_limit:
+        return
+
+    client_ip = request.client.host if request.client else "unknown"
+    key = f"{client_ip}:{route_key}"
+    allowed = await rate_limiter.allow(
+        key=key,
+        limit=settings.rate_limit_per_minute,
+        window_seconds=60,
+    )
+    if not allowed:
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="Rate limit exceeded")
+
+
+async def get_model_manager() -> ModelManager:
+    """Dependency to get model manager from app startup state."""
+    from main import app
+    return app.state.model_manager
 
 
 class BookUploadResponse(BaseModel):
@@ -51,7 +95,9 @@ async def upload_book(
     title: str = Form(...),
     authors: str = Form(...),
     year: Optional[int] = Form(None),
-    fingerprint: Optional[str] = Form(None)
+    fingerprint: Optional[str] = Form(None),
+    model_manager: ModelManager = Depends(get_model_manager),
+    request: Request = None,
 ):
     """
     Upload a PDF book for literature reference
@@ -90,6 +136,9 @@ async def upload_book(
     book_path = books_dir / f"{book_id}.pdf"
     
     try:
+        await require_api_key(request)
+        await require_rate_limit(request, "upload_book")
+
         # Save uploaded file
         with open(book_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
@@ -106,7 +155,11 @@ async def upload_book(
             raise Exception(processing_result.get('error', 'PDF processing failed'))
         
         # Generate embeddings and store in ChromaDB
-        embedding_service = await get_embedding_service(use_mock=True)  # TODO: Get from app state
+        use_mock = getattr(model_manager, "use_mock_services", False)
+        embedding_service = await get_embedding_service(
+            model_manager=model_manager,
+            use_mock=use_mock
+        )
         
         book_metadata = {
             'title': title,
@@ -119,6 +172,11 @@ async def upload_book(
             processing_result['chunks'],
             book_metadata
         )
+
+        # Initialize TOC cache for Generator v3 (used later for targeted extraction)
+        from core.toc_cache import get_optimized_pdf_processor
+        optimized_processor = await get_optimized_pdf_processor(pdf_processor)
+        await optimized_processor.initialize_book(book_path, book_id)
         
         processing_time = time.time() - start_time
         
@@ -133,7 +191,7 @@ async def upload_book(
             pages_extracted=processing_result['total_pages'],
             chunks_created=processing_result['chunks_count'],
             processing_time_seconds=processing_time,
-            warnings=[] if not embedding_result.get('mock') else ["Using mock embeddings for development"]
+            warnings=[] if not embedding_result.get('mock') else ["Using mock embeddings for development"],
         )
         
     except Exception as e:
@@ -152,7 +210,9 @@ async def upload_book(
 @router.post("/upload-multiple-books")
 async def upload_multiple_books(
     files: List[UploadFile] = File(...),
-    fingerprint: Optional[str] = Form(None)
+    fingerprint: Optional[str] = Form(None),
+    model_manager: ModelManager = Depends(get_model_manager),
+    request: Request = None,
 ):
     """
     Upload multiple PDF books at once
@@ -190,7 +250,9 @@ async def upload_multiple_books(
                 file=file,
                 title=title,
                 authors=authors,
-                fingerprint=fingerprint
+                fingerprint=fingerprint,
+                model_manager=model_manager,
+                request=request,
             )
             results.append(result)
             

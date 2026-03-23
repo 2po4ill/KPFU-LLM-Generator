@@ -1,0 +1,43 @@
+Create a professional software architecture diagram with this structure:
+
+TOP LEVEL:
+- FastAPI Application (app/main.py) - Dark blue box
+
+THREE MAIN LAYERS (connected to top):
+
+1. API LAYER (Blue #3498DB):
+   - routes.py
+   - literature_routes.py
+   - rpd_routes.py
+
+2. CORE LAYER (Orange #E67E22):
+   - config.py
+   - database.py
+   - cache.py
+   - model_manager.py
+
+3. DOMAIN LAYER (Green #27AE60) with 5 modules:
+   
+   Literature Module:
+   - processor.py (PDF, TOC, offset)
+   - embeddings.py
+   
+   Generation Module:
+   - generator_v3.py (Multi-phase generation)
+   
+   RPD Module:
+   - extractor.py
+   - parsers.py
+   - processor.py
+   
+   Bot Module:
+   - telegram_bot.py
+
+CONNECTIONS (dashed lines for cross-module):
+- literature_routes.py → processor.py
+- literature_routes.py → generator_v3.py
+- generator_v3.py → model_manager.py
+- processor.py → cache.py
+- telegram_bot.py → literature_routes.py
+
+Style: Modern, clean, professional. Rounded rectangles. White text on dark, black on light. High resolution PNG for academic document.

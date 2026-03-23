@@ -6,8 +6,11 @@ Version 2 - No chunking, proper validation
 import logging
 import time
 import numpy as np
+from pathlib import Path
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
+
+from core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -183,7 +186,10 @@ class ContentGenerator:
             
             # Load book
             # TODO: Get book path from database/config
-            book_path = 'питон_мок_дата.pdf'  # Temporary hardcode
+            book_path = Path("app/cache/books") / f"{book_id}.pdf"
+            if not book_path.exists():
+                logger.warning(f"Book file not found for book_id={book_id}: {book_path}")
+                continue
             pages_data = self.pdf_processor.extract_text_from_pdf(book_path)
             
             if not pages_data['success']:
@@ -343,6 +349,7 @@ class ContentGenerator:
     def _parse_toc_with_regex(self, toc_text: str) -> List[Dict[str, Any]]:
         """
         Parse TOC using regex to extract sections
+        Enhanced to handle multiple TOC formats
         
         Returns:
             List of dicts: [{'number': '7.4', 'title': 'Строки', 'page': 36}, ...]
@@ -357,23 +364,55 @@ class ContentGenerator:
             if not line:
                 continue
             
-            # Pattern: "7.4 Строки . . . . 36" or "14 Объектно-ориентированное программирование 101"
-            # Match: section_number + title + dots/spaces + page_number
-            match = re.match(r'^(\d+(?:\.\d+)?)\s+(.+?)\s+[.\s]+(\d+)$', line)
+            # Multiple patterns to handle different TOC formats
+            patterns = [
+                # Original pattern: "7.4 Строки . . . . 36"
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+[.\s]+(\d+)\s*$',
+                
+                # Simple pattern: "7.4 Строки 36"
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+(\d+)\s*$',
+                
+                # Russian academic: "Глава 1. Title .... 15"
+                r'^(?:Глава|Chapter|Раздел)\s+(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                
+                # Numbered: "1. Title .... 15"
+                r'^(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                
+                # Flexible: any number + text + number at end
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+(\d+)$'
+            ]
             
-            if match:
-                section_num = match.group(1)
-                title = match.group(2).strip()
-                page = int(match.group(3))
-                
-                # Clean title: add spaces to stuck-together words
-                title = self._add_spaces_to_russian_text(title)
-                
-                sections.append({
-                    'number': section_num,
-                    'title': title,
-                    'page': page
-                })
+            matched = False
+            for pattern in patterns:
+                match = re.match(pattern, line)
+                if match:
+                    section_num = match.group(1)
+                    title = match.group(2).strip()
+                    
+                    # Clean title: remove excessive dots and spaces
+                    title = re.sub(r'[.\s]+$', '', title)  # Remove trailing dots/spaces
+                    title = re.sub(r'\s+', ' ', title)     # Normalize spaces
+                    
+                    try:
+                        page = int(match.group(3))
+                        
+                        # Only add if title is meaningful
+                        if len(title) > 2 and not re.match(r'^[.\s]*$', title):
+                            # Clean title: add spaces to stuck-together words
+                            title = self._add_spaces_to_russian_text(title)
+                            
+                            sections.append({
+                                'number': section_num,
+                                'title': title,
+                                'page': page
+                            })
+                            matched = True
+                            break
+                    except ValueError:
+                        continue
+            
+            if matched:
+                continue
         
         # Calculate page ranges (end = next section's start - 1)
         for i in range(len(sections)):
@@ -387,7 +426,7 @@ class ContentGenerator:
             if sections[i]['page'] > sections[i]['end_page']:
                 sections[i]['page'], sections[i]['end_page'] = sections[i]['end_page'], sections[i]['page']
         
-        logger.info(f"Parsed {len(sections)} sections from TOC using regex")
+        logger.info(f"Parsed {len(sections)} sections from TOC using enhanced regex")
         return sections
     
     async def _add_spaces_to_russian_text_with_llm(self, text: str) -> str:
@@ -408,7 +447,7 @@ class ContentGenerator:
 Исправленный текст:"""
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=prompt,
                 options={
                     "temperature": 0.1,
@@ -512,19 +551,24 @@ class ContentGenerator:
             # Step 3: Send full TOC to Gemma 3 27B (no chunking!)
             llm_model = await self.model_manager.get_llm_model()
             
-            prompt = f"""Тема: "{theme}"
+            prompt = f"""Тема лекции: "{theme}"
 
-Выбери разделы, которые учат этой теме.
+Проанализируй оглавление книги и выбери ТОЛЬКО те разделы, которые НАПРЯМУЮ относятся к этой теме.
 
-Оглавление:
+ВАЖНО:
+- Если книга НЕ по этой теме (например, книга по физике, а тема про программирование), верни "0"
+- Если тема НЕ соответствует содержанию книги, верни "0"
+- Выбирай только релевантные разделы, которые помогут раскрыть тему
+
+Оглавление книги:
 {full_toc}
 
-Ответ (номера разделов):"""
+Ответ (номера разделов или "0" если книга не подходит):"""
             
             logger.info(f"Sending full TOC ({len(full_toc)} chars) to Gemma")
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=prompt,
                 options={
                     "temperature": 0.1,
@@ -553,10 +597,10 @@ class ContentGenerator:
             
             logger.info(f"Selected {len(final_pages)} pages: {final_pages}")
             
-            # Limit to max 30 pages
-            if len(final_pages) > 30:
-                logger.warning(f"Too many pages ({len(final_pages)}), limiting to 30")
-                final_pages = final_pages[:30]
+            # No page limit - process all relevant pages
+            # Deduplication in generator_v3 will handle concept overlap
+            if len(final_pages) > 50:
+                logger.info(f"Processing {len(final_pages)} pages (no limit with deduplication)")
             
             return final_pages
             
@@ -674,19 +718,26 @@ class ContentGenerator:
         outline = await self._generate_outline(theme, context)
         logger.info(f"Outline generated: {len(outline)} sections")
         
-        # Stage 2: Generate each section
+        # Stage 2: Generate each section (PARALLEL)
         logger.info("Stage 2: Generating sections...")
-        sections = []
+        import asyncio
+        
+        # Create parallel tasks for all sections
+        section_tasks = []
         for i, section_info in enumerate(outline, 1):
-            logger.info(f"Generating section {i}/{len(outline)}: {section_info['title']}")
-            section_content = await self._generate_section(
+            logger.info(f"Preparing section {i}/{len(outline)}: {section_info['title']}")
+            task = self._generate_section(
                 theme, 
                 section_info, 
                 context,
                 i,
                 len(outline)
             )
-            sections.append(section_content)
+            section_tasks.append(task)
+        
+        # Execute all sections in parallel
+        logger.info(f"Executing {len(section_tasks)} sections in parallel...")
+        sections = await asyncio.gather(*section_tasks)
         
         # Combine sections
         final_content = "\n\n".join(sections)
@@ -728,7 +779,7 @@ class ContentGenerator:
             llm_model = await self.model_manager.get_llm_model()
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=outline_prompt,
                 options={
                     "temperature": 0.3,
@@ -847,7 +898,7 @@ class ContentGenerator:
             llm_model = await self.model_manager.get_llm_model()
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=section_prompt,
                 options={
                     "temperature": 0.3,
@@ -953,7 +1004,7 @@ class ContentGenerator:
             llm_model = await self.model_manager.get_llm_model()
             
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=prompt,
                 options={
                     "temperature": 0.3,
@@ -1062,7 +1113,7 @@ class ContentGenerator:
 Максимум 10 наиболее важных утверждений."""
 
             response = await llm_model.generate(
-                model="llama3.1:8b",
+                model=settings.llm_model,
                 prompt=extraction_prompt,
                 options={
                     "temperature": 0.1,

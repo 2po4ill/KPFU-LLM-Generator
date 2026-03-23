@@ -9,7 +9,7 @@ from pathlib import Path
 import tempfile
 import shutil
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 
@@ -19,6 +19,46 @@ from rpd.processor import get_rpd_processor, RPDProcessor
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/rpd", tags=["RPD Processing"])
+
+
+async def require_api_key(request: Request = None):
+    """Optional API-key auth (enabled only when settings.api_key is set)."""
+    from core.config import settings
+
+    if request is None:
+        return
+
+    if not settings.api_key:
+        return
+
+    provided = request.headers.get("X-API-Key")
+    if provided != settings.api_key:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+
+
+async def require_rate_limit(request: Request = None, route_key: str = ""):
+    """Optional in-process rate limiting for heavy endpoints."""
+    from core.config import settings
+    from core.rate_limiter import rate_limiter
+
+    if request is None:
+        return
+
+    if not settings.enable_rate_limit:
+        return
+
+    client_ip = request.client.host if request.client else "unknown"
+    key = f"{client_ip}:{route_key}"
+    allowed = await rate_limiter.allow(
+        key=key,
+        limit=settings.rate_limit_per_minute,
+        window_seconds=60,
+    )
+    if not allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Rate limit exceeded",
+        )
 
 
 class RPDProcessingResponse(BaseModel):
@@ -91,7 +131,8 @@ async def get_rpd_processor_instance(model_manager: ModelManager = Depends(get_m
 @router.post("/submit-data", response_model=RPDDataResponse)
 async def submit_rpd_data(
     rpd_data: RPDInputData,
-    processor: RPDProcessor = Depends(get_rpd_processor_instance)
+    processor: RPDProcessor = Depends(get_rpd_processor_instance),
+    request: Request = None,
 ):
     """
     Submit RPD data directly (e.g., from Telegram bot or web form)
@@ -104,6 +145,9 @@ async def submit_rpd_data(
         Submission result with validation and request fingerprint
     """
     try:
+        await require_api_key(request)
+        await require_rate_limit(request, "rpd_submit_data")
+
         logger.info(f"Received RPD data submission for: {rpd_data.subject_title}")
         
         # Generate request fingerprint
@@ -169,11 +213,30 @@ async def submit_rpd_data(
         # Validate completeness
         validation_result = processor._validate_completeness(rpd_obj)
         
+        # Persist validated request by fingerprint so generation can reuse it
+        rpd_dict = processor.extractor.to_dict(rpd_obj)
+        from core.database import get_db, RPDRequest
+        from sqlalchemy import select
+
+        async for db in get_db():
+            existing_res = await db.execute(
+                select(RPDRequest).where(RPDRequest.request_fingerprint == fingerprint)
+            )
+            existing = existing_res.scalar_one_or_none()
+
+            if existing:
+                existing.request_data = rpd_dict
+            else:
+                db.add(RPDRequest(request_fingerprint=fingerprint, request_data=rpd_dict))
+
+            await db.commit()
+            break
+
         return RPDDataResponse(
             success=True,
             rpd_id=fingerprint,  # Use fingerprint as ID
             message=f"RPD data validated. Fingerprint: {fingerprint}. Completeness: {validation_result['completeness_score']:.2%}",
-            data=processor.extractor.to_dict(rpd_obj),
+            data=rpd_dict,
             warnings=validation_result['warnings']
         )
         
@@ -454,7 +517,9 @@ async def generate_content(
     theme_title: str,
     content_type: str = "lecture",
     book_ids: Optional[List[str]] = None,
-    processor: RPDProcessor = Depends(get_rpd_processor_instance)
+    processor: RPDProcessor = Depends(get_rpd_processor_instance),
+    model_manager: ModelManager = Depends(get_model_manager),
+    request: Request = None,
 ):
     """
     Generate content (lecture or lab) for a specific theme
@@ -470,12 +535,13 @@ async def generate_content(
         Generated content with citations and metadata
     """
     try:
-        from core.database import get_db, GeneratedContent
+        await require_api_key(request)
+        await require_rate_limit(request, "generate_content")
+
+        from core.database import get_db, GeneratedContent, RPDRequest
         from sqlalchemy import select
-        from generation.generator import get_content_generator
-        from literature.embeddings import get_embedding_service
         from literature.processor import get_pdf_processor
-        import json
+        from generation.generator_v3 import get_optimized_content_generator
         
         # Check if content already exists
         async for db in get_db():
@@ -504,17 +570,30 @@ async def generate_content(
                     "created_date": existing_content.created_date.isoformat()
                 }
             
-            # Get RPD data from first content item or fail
-            # TODO: Store RPD data separately or pass it in request
             logger.info(f"Generating new content for fingerprint {fingerprint}, theme {theme_title}")
             
-            # Mock RPD data for now
-            rpd_data = {
-                'subject_title': 'Программирование на Python',
-                'academic_degree': 'bachelor',
-                'profession': 'Прикладная информатика',
-                'department': 'Кафедра информационных технологий'
-            }
+            if content_type != "lecture":
+                return {
+                    "success": False,
+                    "message": f"Unsupported content_type: {content_type}. Only 'lecture' is implemented.",
+                    "fingerprint": fingerprint,
+                    "theme_title": theme_title,
+                }
+
+            # Load validated RPD request by fingerprint
+            rpd_req_res = await db.execute(
+                select(RPDRequest).where(RPDRequest.request_fingerprint == fingerprint)
+            )
+            rpd_req = rpd_req_res.scalar_one_or_none()
+            if not rpd_req:
+                return {
+                    "success": False,
+                    "message": "No RPD request found for this fingerprint. Submit RPD first via /submit-data.",
+                    "fingerprint": fingerprint,
+                    "theme_title": theme_title,
+                }
+
+            rpd_data = rpd_req.request_data
             
             # Get book IDs if not provided
             if not book_ids:
@@ -532,23 +611,39 @@ async def generate_content(
                     "theme_title": theme_title
                 }
             
-            # Initialize services
-            embedding_service = await get_embedding_service(use_mock=True)  # TODO: Get from app state
             pdf_processor = get_pdf_processor()
             
-            # Get content generator
-            generator = await get_content_generator(
-                model_manager=None,  # TODO: Get from app state
-                embedding_service=embedding_service,
+            # Get optimized generator v3 (TOC caching + targeted extraction)
+            generator = await get_optimized_content_generator(
+                model_manager=model_manager,
                 pdf_processor=pdf_processor,
-                use_mock=True  # Using mock for now
+                use_mock=getattr(model_manager, "use_mock_services", False),
             )
+
+            # Ensure TOC cache is initialized for all books we will use
+            books_dir = Path("app/cache/books")
+            valid_book_ids = []
+            for bid in book_ids:
+                book_path = books_dir / f"{bid}.pdf"
+                if not book_path.exists():
+                    logger.warning(f"Skipping missing book file for book_id={bid}: {book_path}")
+                    continue
+                await generator.initialize_book(str(book_path), bid)
+                valid_book_ids.append(bid)
+
+            if not valid_book_ids:
+                return {
+                    "success": False,
+                    "message": "No valid books found (files are missing). Please upload books first.",
+                    "fingerprint": fingerprint,
+                    "theme_title": theme_title,
+                }
             
             # Generate content
-            generation_result = await generator.generate_lecture(
+            generation_result = await generator.generate_lecture_optimized(
                 theme=theme_title,
                 rpd_data=rpd_data,
-                book_ids=book_ids
+                book_ids=valid_book_ids,
             )
             
             if not generation_result.success:

@@ -4,6 +4,7 @@ Literature processing: PDF extraction, chunking, and embedding generation
 
 import logging
 import re
+import time
 from typing import List, Dict, Any, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
@@ -362,17 +363,22 @@ Output (one line per entry, format: Title → Page):"""
     def parse_table_of_contents(self, text: str) -> List[TableOfContents]:
         """
         Parse table of contents from text
-        Handles PyMuPDF multi-line format with TWO patterns:
+        Handles multiple TOC formats:
         
-        Pattern 1 (subsections - 4 lines):
+        Format 1 (PyMuPDF multi-line - 4 lines):
         Line 1: Section number (e.g., "14.1")
         Line 2: Title (e.g., "self")
         Line 3: Dots
         Line 4: Page number (e.g., "102")
         
-        Pattern 2 (main sections - 2 lines):
-        Line 1: Section number + Title (e.g., "14 Объектно-ориентированное программирование")
-        Line 2: Page number (e.g., "101")
+        Format 2 (Single line with dots):
+        Line: "14 Объектно-ориентированное программирование . . . 101"
+        
+        Format 3 (Simple format):
+        Line: "14 Объектно-ориентированное программирование 101"
+        
+        Format 4 (Russian academic format):
+        Line: "Глава 1. Введение в Python ........................ 15"
         
         Args:
             text: Full text or TOC section
@@ -388,30 +394,69 @@ Output (one line per entry, format: Title → Page):"""
         while i < len(lines) - 1:
             line = lines[i].strip()
             
-            # Pattern 2: Section number + Title on same line (e.g., "14 Объектно-ориентированное программирование")
-            # Match: number(s) followed by space and text
-            match = re.match(r'^(\d+)\s+(.+)$', line)
-            if match:
-                section_num = match.group(1)
-                title = match.group(2).strip()
-                next_line = lines[i + 1].strip()
-                
-                # Check if next line is a page number
-                if next_line.isdigit():
-                    page_num = int(next_line)
-                    level = 1  # Main sections are level 1
-                    
-                    toc_entries.append(TableOfContents(
-                        title=title,
-                        page_number=page_num,
-                        level=level
-                    ))
-                    logger.debug(f"TOC entry (pattern 2): [{level}] {title} → page {page_num}")
-                    i += 2
-                    continue
+            # Skip empty lines
+            if not line:
+                i += 1
+                continue
             
-            # Pattern 1: Section number alone (e.g., "14.1")
-            if line and re.match(r'^\d+\.\d+', line):
+            # Format 2 & 3: Single line formats
+            # Pattern: number + title + optional dots + page number
+            patterns = [
+                # "14.1 Title . . . . 102" or "14.1 Title 102"
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                
+                # "Глава 1. Title .... 15" 
+                r'^(?:Глава|Chapter|Раздел)\s+(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                
+                # "1. Title .... 15"
+                r'^(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                
+                # More flexible: any number + text + number at end
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+(\d+)$'
+            ]
+            
+            matched = False
+            for pattern in patterns:
+                match = re.match(pattern, line)
+                if match:
+                    section_num = match.group(1)
+                    title = match.group(2).strip()
+                    
+                    # Clean title: remove excessive dots and spaces
+                    title = re.sub(r'[.\s]+$', '', title)  # Remove trailing dots/spaces
+                    title = re.sub(r'\s+', ' ', title)     # Normalize spaces
+                    
+                    try:
+                        page_num = int(match.group(3))
+                        
+                        # Determine level based on section number
+                        if '.' in section_num:
+                            level = section_num.count('.') + 1
+                        else:
+                            level = 1
+                        
+                        # Only add if title is meaningful (not too short, not just dots)
+                        if len(title) > 2 and not re.match(r'^[.\s]*$', title):
+                            toc_entries.append(TableOfContents(
+                                title=title,
+                                page_number=page_num,
+                                level=level
+                            ))
+                            logger.debug(f"TOC entry (single line): [{level}] {title} → page {page_num}")
+                        
+                        matched = True
+                        break
+                        
+                    except ValueError:
+                        continue
+            
+            if matched:
+                i += 1
+                continue
+            
+            # Format 1: Multi-line format (original PyMuPDF format)
+            # Pattern: Section number alone (e.g., "14.1")
+            if re.match(r'^\d+\.\d+$', line):
                 section_num = line
                 
                 # Check if we have at least 3 more lines
@@ -434,7 +479,7 @@ Output (one line per entry, format: Title → Page):"""
                                     page_number=page_num,
                                     level=level
                                 ))
-                                logger.debug(f"TOC entry (pattern 1): [{level}] {title_line} → page {page_num}")
+                                logger.debug(f"TOC entry (multi-line): [{level}] {title_line} → page {page_num}")
                             
                             i += 4
                             continue
@@ -588,9 +633,10 @@ Output (one line per entry, format: Title → Page):"""
     
     def detect_page_offset(self, pages_data: List[Dict[str, Any]]) -> int:
         """
-        Detect offset between book page numbers (колонтитул/footer) and PDF page numbers.
+        Detect offset between book page numbers (колонтитул) and PDF page numbers.
         
-        Strategy: Find the first page where footer number = 1 (book page 1).
+        Strategy: Find the first page where page number = 1 (book page 1).
+        Supports both footer (нижний колонтитул) and header (верхний колонтитул).
         Offset = PDF page number - 1
         
         Args:
@@ -601,7 +647,8 @@ Output (one line per entry, format: Title → Page):"""
         """
         logger.info("Detecting page offset between PDF pages and book pages...")
         
-        # Scan first 50 pages to find footer page "1"
+        # Method 1: Look for page "1" in footer (нижний колонтитул)
+        logger.info("Method 1: Checking footer page numbers...")
         for page in pages_data[:50]:
             pdf_page_num = page['page_number']
             text = page['text']
@@ -634,27 +681,300 @@ Output (one line per entry, format: Title → Page):"""
                     logger.info(f"Found footer '1' on PDF page {pdf_page_num} → offset = {offset}")
                     return offset
         
-        # If not found, try alternative: look for any footer number and match with TOC
-        logger.warning("Could not find footer page '1', trying alternative method...")
-        
-        # Look for pages with clear footer numbers (2-digit numbers at end)
-        for page in pages_data[10:40]:  # Skip first 10 pages (usually TOC/intro)
+        # Method 2: Look for page "1" in header (верхний колонтитул)
+        logger.info("Method 2: Checking header page numbers...")
+        for page in pages_data[:50]:
             pdf_page_num = page['page_number']
             text = page['text']
             
+            # Extract header number from first few lines
             lines = text.strip().split('\n')
-            last_line = lines[-1].strip() if lines else ""
+            first_lines = lines[:5] if len(lines) >= 5 else lines
             
-            # Look for 2-digit number at end
-            match = re.search(r'(\d{2})$', last_line)
-            if match:
-                footer_num = int(match.group(1))
-                offset = pdf_page_num - footer_num
-                logger.info(f"Found footer '{footer_num}' on PDF page {pdf_page_num} → offset = {offset}")
-                return offset
+            for line in first_lines:
+                line = line.strip()
+                
+                # Pattern 1: Just "1" on a line (header)
+                if line == "1":
+                    offset = pdf_page_num - 1
+                    logger.info(f"Found header '1' on PDF page {pdf_page_num} → offset = {offset}")
+                    return offset
+                
+                # Pattern 2: "Глава 1" or "Chapter 1" at start
+                match = re.match(r'^(?:Глава|Chapter|Раздел)\s+1$', line, re.IGNORECASE)
+                if match:
+                    offset = pdf_page_num - 1
+                    logger.info(f"Found header '1' on PDF page {pdf_page_num} → offset = {offset}")
+                    return offset
+                
+                # Pattern 3: Number at start of line
+                match = re.match(r'^1\s+', line)
+                if match and len(line) > 5:  # Avoid false positives
+                    offset = pdf_page_num - 1
+                    logger.info(f"Found header '1' on PDF page {pdf_page_num} → offset = {offset}")
+                    return offset
+        
+        # Method 3: Look for any page number and calculate offset
+        logger.info("Method 3: Trying alternative method with any page number...")
+        
+        # Check both footer and header for any clear page numbers
+        for page in pages_data[10:40]:  # Skip first 10 pages (usually TOC/intro)
+            pdf_page_num = page['page_number']
+            text = page['text']
+            lines = text.strip().split('\n')
+            
+            # Check footer (last line)
+            if lines:
+                last_line = lines[-1].strip()
+                match = re.search(r'(\d{1,3})$', last_line)
+                if match:
+                    footer_num = int(match.group(1))
+                    # Reasonable page number (not too high, not 0)
+                    if 1 <= footer_num <= 500:
+                        offset = pdf_page_num - footer_num
+                        logger.info(f"Found footer '{footer_num}' on PDF page {pdf_page_num} → offset = {offset}")
+                        return offset
+            
+            # Check header (first few lines)
+            for line in lines[:3]:
+                line = line.strip()
+                # Look for isolated numbers at start or end
+                match = re.search(r'^(\d{1,3})\s|(\d{1,3})$', line)
+                if match:
+                    header_num = int(match.group(1) or match.group(2))
+                    # Reasonable page number
+                    if 1 <= header_num <= 500:
+                        offset = pdf_page_num - header_num
+                        logger.info(f"Found header '{header_num}' on PDF page {pdf_page_num} → offset = {offset}")
+                        return offset
         
         logger.warning("Could not detect page offset, defaulting to 0")
         return 0
+    def extract_specific_pages(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """
+        Extract only specific pages from PDF (optimized for performance)
+
+        Args:
+            pdf_path: Path to PDF file
+            page_numbers: List of page numbers to extract (1-indexed)
+
+        Returns:
+            Dictionary with extracted pages and metadata
+        """
+        try:
+            if HAS_PDFPLUMBER:
+                return self._extract_specific_pages_pdfplumber(pdf_path, page_numbers)
+            elif HAS_PYMUPDF:
+                return self._extract_specific_pages_pymupdf(pdf_path, page_numbers)
+            else:
+                return self._extract_specific_pages_pypdf2(pdf_path, page_numbers)
+
+        except Exception as e:
+            logger.error(f"Error extracting specific pages from PDF: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def _extract_specific_pages_pdfplumber(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """Extract specific pages using pdfplumber"""
+        with pdfplumber.open(pdf_path) as pdf:
+            total_pages = len(pdf.pages)
+            pages_text = []
+
+            # Filter valid page numbers
+            valid_pages = [p for p in page_numbers if 1 <= p <= total_pages]
+
+            logger.info(f"Extracting {len(valid_pages)} specific pages using pdfplumber...")
+
+            for page_num in valid_pages:
+                try:
+                    page = pdf.pages[page_num - 1]  # Convert to 0-indexed
+                    text = page.extract_text()
+                    if text:
+                        pages_text.append({
+                            'page_number': page_num,
+                            'text': text,
+                            'char_count': len(text)
+                        })
+                except Exception as e:
+                    logger.warning(f"Failed to extract page {page_num}: {e}")
+                    continue
+
+            # Extract metadata
+            metadata = pdf.metadata or {}
+
+            full_text = '\n\n'.join([p['text'] for p in pages_text])
+
+            return {
+                'success': True,
+                'total_pages': len(pages_text),
+                'pages': pages_text,
+                'full_text': full_text,
+                'total_chars': len(full_text),
+                'metadata': metadata,
+                'extracted_page_numbers': [p['page_number'] for p in pages_text]
+            }
+
+    def _extract_specific_pages_pymupdf(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """Extract specific pages using PyMuPDF"""
+        import fitz
+
+        doc = fitz.open(pdf_path)
+        total_pages = len(doc)
+        pages_text = []
+
+        # Filter valid page numbers
+        valid_pages = [p for p in page_numbers if 1 <= p <= total_pages]
+
+        logger.info(f"Extracting {len(valid_pages)} specific pages using PyMuPDF...")
+
+        for page_num in valid_pages:
+            try:
+                page = doc[page_num - 1]  # Convert to 0-indexed
+                text = page.get_text()
+                if text:
+                    pages_text.append({
+                        'page_number': page_num,
+                        'text': text,
+                        'char_count': len(text)
+                    })
+            except Exception as e:
+                logger.warning(f"Failed to extract page {page_num}: {e}")
+                continue
+
+        doc.close()
+
+        full_text = '\n\n'.join([p['text'] for p in pages_text])
+
+        return {
+            'success': True,
+            'total_pages': len(pages_text),
+            'pages': pages_text,
+            'full_text': full_text,
+            'total_chars': len(full_text),
+            'metadata': {},
+            'extracted_page_numbers': [p['page_number'] for p in pages_text]
+        }
+
+    def _extract_specific_pages_pypdf2(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """Extract specific pages using PyPDF2"""
+        import PyPDF2
+
+        with open(pdf_path, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            total_pages = len(reader.pages)
+            pages_text = []
+
+            # Filter valid page numbers
+            valid_pages = [p for p in page_numbers if 1 <= p <= total_pages]
+
+            logger.info(f"Extracting {len(valid_pages)} specific pages using PyPDF2...")
+
+            for page_num in valid_pages:
+                try:
+                    page = reader.pages[page_num - 1]  # Convert to 0-indexed
+                    text = page.extract_text()
+                    if text:
+                        pages_text.append({
+                            'page_number': page_num,
+                            'text': text,
+                            'char_count': len(text)
+                        })
+                except Exception as e:
+                    logger.warning(f"Failed to extract page {page_num}: {e}")
+                    continue
+
+            full_text = '\n\n'.join([p['text'] for p in pages_text])
+
+            return {
+                'success': True,
+                'total_pages': len(pages_text),
+                'pages': pages_text,
+                'full_text': full_text,
+                'total_chars': len(full_text),
+                'metadata': {},
+                'extracted_page_numbers': [p['page_number'] for p in pages_text]
+            }
+
+    def initialize_book_toc_cache(self, pdf_path: Path, book_id: str) -> Dict[str, Any]:
+        """
+        Initialize TOC cache for a book (extract first 30 pages, detect TOC, cache data)
+        This is done once per book during initialization
+
+        Args:
+            pdf_path: Path to PDF file
+            book_id: Unique book identifier
+
+        Returns:
+            Dictionary with cached TOC data
+        """
+        try:
+            logger.info(f"Initializing TOC cache for book {book_id}...")
+
+            # Step 1: Extract first 30 pages only
+            first_30_pages = list(range(1, 31))
+            pages_data = self.extract_specific_pages(pdf_path, first_30_pages)
+
+            if not pages_data['success']:
+                logger.error(f"Failed to extract first 30 pages from {pdf_path}")
+                return {'success': False, 'error': 'Failed to extract pages'}
+
+            logger.info(f"Extracted {len(pages_data['pages'])} pages for TOC detection")
+
+            # Step 2: Detect page offset
+            page_offset = self.detect_page_offset(pages_data['pages'])
+            logger.info(f"Detected page offset: {page_offset}")
+
+            # Step 3: Find TOC pages
+            toc_page_numbers = self.find_toc_pages(pages_data['pages'])
+
+            if not toc_page_numbers:
+                logger.warning(f"No TOC found in first 30 pages of {book_id}")
+                return {'success': False, 'error': 'No TOC found'}
+
+            logger.info(f"Found TOC pages: {toc_page_numbers}")
+
+            # Step 4: Extract TOC text
+            toc_text = '\n\n'.join([
+                p['text'] for p in pages_data['pages']
+                if p['page_number'] in toc_page_numbers
+            ])
+
+            # Limit TOC text size
+            if len(toc_text) > 10000:
+                toc_text = toc_text[:10000]
+
+            # Step 5: Parse TOC sections (if we have the method available)
+            parsed_sections = []
+            try:
+                # This would use the regex parsing from generator_v2
+                # For now, we'll store the raw text and parse it when needed
+                pass
+            except Exception as e:
+                logger.warning(f"Failed to parse TOC sections: {e}")
+
+            # Step 6: Create cache data
+            toc_cache_data = {
+                'success': True,
+                'book_id': book_id,
+                'pdf_path': str(pdf_path),
+                'toc_pages': toc_page_numbers,
+                'toc_text': toc_text,
+                'page_offset': page_offset,
+                'parsed_sections': parsed_sections,
+                'first_30_pages': pages_data['pages'],
+                'cache_created': time.time()
+            }
+
+            logger.info(f"TOC cache initialized for {book_id}: {len(toc_text)} chars, offset {page_offset}")
+
+            return toc_cache_data
+
+        except Exception as e:
+            logger.error(f"Error initializing TOC cache for {book_id}: {e}")
+            return {'success': False, 'error': str(e)}
+
     
     def get_book_toc(self, book_id: str) -> List[TableOfContents]:
         """
@@ -667,6 +987,72 @@ Output (one line per entry, format: Title → Page):"""
             List of TOC entries
         """
         return self.book_tocs.get(book_id, [])
+
+    def extract_specific_pages(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """
+        Extract only specific pages from PDF (optimized for performance)
+
+        Args:
+            pdf_path: Path to PDF file
+            page_numbers: List of page numbers to extract (1-indexed)
+
+        Returns:
+            Dictionary with extracted pages and metadata
+        """
+        try:
+            if HAS_PDFPLUMBER:
+                return self._extract_specific_pages_pdfplumber(pdf_path, page_numbers)
+            elif HAS_PYMUPDF:
+                return self._extract_specific_pages_pymupdf(pdf_path, page_numbers)
+            else:
+                return self._extract_specific_pages_pypdf2(pdf_path, page_numbers)
+
+        except Exception as e:
+            logger.error(f"Error extracting specific pages from PDF: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
+    def _extract_specific_pages_pdfplumber(self, pdf_path: Path, page_numbers: List[int]) -> Dict[str, Any]:
+        """Extract specific pages using pdfplumber"""
+        with pdfplumber.open(pdf_path) as pdf:
+            total_pages = len(pdf.pages)
+            pages_text = []
+
+            # Filter valid page numbers
+            valid_pages = [p for p in page_numbers if 1 <= p <= total_pages]
+
+            logger.info(f"Extracting {len(valid_pages)} specific pages using pdfplumber...")
+
+            for page_num in valid_pages:
+                try:
+                    page = pdf.pages[page_num - 1]  # Convert to 0-indexed
+                    text = page.extract_text()
+                    if text:
+                        pages_text.append({
+                            'page_number': page_num,
+                            'text': text,
+                            'char_count': len(text)
+                        })
+                except Exception as e:
+                    logger.warning(f"Failed to extract page {page_num}: {e}")
+                    continue
+
+            # Extract metadata
+            metadata = pdf.metadata or {}
+
+            full_text = '\n\n'.join([p['text'] for p in pages_text])
+
+            return {
+                'success': True,
+                'total_pages': len(pages_text),
+                'pages': pages_text,
+                'full_text': full_text,
+                'total_chars': len(full_text),
+                'metadata': metadata,
+                'extracted_page_numbers': [p['page_number'] for p in pages_text]
+            }
 
 
 # Global processor instance

@@ -56,6 +56,15 @@ class Settings(BaseSettings):
     debug: bool = False
     log_level: str = "INFO"
     
+    # Telegram Bot
+    telegram_bot_token: Optional[str] = None
+
+    # Security / production hardening (optional)
+    # If API_KEY is not set, endpoints are left open (useful for local diploma testing).
+    api_key: Optional[str] = os.getenv("API_KEY")
+    enable_rate_limit: bool = os.getenv("ENABLE_RATE_LIMIT", "false").lower() == "true"
+    rate_limit_per_minute: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "30"))
+    
     @property
     def allowed_file_types_list(self) -> List[str]:
         """Get allowed file types as a list"""

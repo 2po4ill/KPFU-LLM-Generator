@@ -102,6 +102,27 @@ class GeneratedContent(Base):
     )
 
 
+class RPDRequest(Base):
+    """
+    Store submitted RPD input (structured JSON) by request fingerprint.
+
+    This lets `/generate-content` use the exact same validated RPD input
+    that was previously submitted via `/submit-data`.
+    """
+    __tablename__ = "rpd_requests"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    request_fingerprint = Column(String(16), nullable=False, unique=True, index=True)
+    request_data = Column(JSONB, nullable=False)
+
+    created_date = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_rpd_request_fingerprint", "request_fingerprint"),
+    )
+
+
 class LiteratureCache(Base):
     """
     Cache for KPFU library lookups and book content
