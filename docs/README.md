@@ -1,201 +1,74 @@
-# KPFU LLM Educational Content Generator - Documentation
+# RPD UI Smoke Guide
 
-**Project Status**: ✅ **PRODUCTION READY**  
-**Last Updated**: February 25, 2026
+## UI
+Static single-page app (`index.html` + `styles.css` + `app.js`):
+- 3-step flow: API → upload RPD → sources & generate
+- Settings collapsed by default
+- Source list as cards (not a wide table)
+- API log in collapsible panel
 
----
+## Purpose
+Minimal static UI for:
+- upload RPD file
+- inspect discovered sources
+- selectively resolve direct PDF sources
+- trigger single-theme generation
 
-## 📁 Documentation Structure
+## GitHub Pages
 
-This documentation is organized by the major problems we solved during development. Each folder contains the relevant analysis, solutions, and progress tracking for that specific challenge.
+Static UI is deployed from `web/rpd-ui/` via GitHub Actions (`.github/workflows/deploy-rpd-ui-pages.yml`).
 
-### 📋 **01-project-overview/**
-**Core project documentation and architecture decisions**
+**URL (after enable):** `https://2po4ill.github.io/KPFU-LLM-Generator/`
 
-- `PROJECT_PROGRESS_ANALYSIS.md` - **START HERE** - Complete project status and achievements
-- `ACADEMIC_SUMMARY.md` - Research findings and technical contributions  
-- `FINAL_ARCHITECTURE.md` - System architecture and design decisions
-- `PROJECT_STRUCTURE.md` - Codebase organization
-- `DEVELOPMENT.md` - Development setup and guidelines
-- `PROBLEMS_AND_SOLUTIONS.md` - Major challenges and how we solved them
-- `IMPLEMENTATION_SUMMARY.md` - Technical implementation details
-- `EXPANSION_IMPLEMENTATION.md` - Future expansion plans
-- `FINAL_IMPLEMENTATION_PLAN.md` - Final system design
-- `PROJECT_CLEANUP_ANALYSIS.md` - Code organization decisions
+### One-time setup in GitHub repo
 
-### 🎯 **02-toc-page-selection/**
-**Problem: How to select relevant pages from textbooks**
+1. **Settings → Pages → Build and deployment → Source:** `GitHub Actions`
+2. Push to `main` (or run workflow manually: Actions → Deploy RPD UI)
 
-**Challenge**: Traditional semantic search on text chunks was unreliable and slow.
+### Using the hosted UI
 
-**Solution**: TOC-based page selection using LLM analysis of raw table of contents.
+- Backend is **not** on Pages — only the static frontend.
+- In **Настройки API** set **Адрес сервера**, e.g. `http://127.0.0.1:8000/api/v1` (local) or your public API URL.
+- Backend CORS is open (`allow_origins=["*"]` in `app/main.py`).
+- If API key is configured on the server, enter it in the UI.
 
-- `TOC_SOLUTION.md` - **KEY BREAKTHROUGH** - TOC-based selection methodology
-- `TOC_LIMITATION_ANALYSIS.md` - Why chunking and semantic search failed
-- `TOC_INPUT_ANALYSIS.md` - Analysis of TOC formats and LLM behavior
-- `REGEX_TOC_PROMPT_TEST.md` - Prompt engineering experiments
+### Run Locally
+1. Start backend FastAPI (`/api/v1` must be available).
+2. Open static UI:
+   - simplest: open `web/rpd-ui/index.html` in browser, or
+   - serve folder (`python -m http.server`) and open `http://127.0.0.1:8000/web/rpd-ui/`.
+3. In UI, set:
+   - API base, e.g. `http://127.0.0.1:8000/api/v1`
+   - `X-API-Key` if backend uses it.
 
-**Result**: 100% accurate page selection, 8x faster than semantic search.
+## Smoke Scenario
+1. Upload one RPD file via **"Загрузить и разобрать РПД"**.
+2. Verify:
+   - `rpd_id` displayed.
+   - themes list populated.
+   - discovered sources table populated.
+3. Press **"Выбрать все direct_pdf"** (or select manually), then **resolve**.
+4. Press **refresh** and verify statuses/counters:
+   - expected statuses: `ok`, `duplicate_ok`, `failed`, `skipped`.
+   - populated `book_id` for successful entries.
+5. Select theme, set generation flags (PPTX / lab / self-check), press **"Сгенерировать пакет"**.
+6. In **Проверка экспертом**: edit markdown, preview, press **"Утвердить для экспорта"**.
+7. Export SCORM, PDF bundle, or PPTX.
+8. Verify log includes generation metadata:
+   - `generation_time_seconds`
+   - `confidence_score`
+   - `cached`
+   - `step_times`
 
-### 🔧 **03-page-offset-problem/**
-**Problem: TOC page numbers ≠ PDF page numbers**
+## Negative Cases
+- Invalid/broken PDF URL in sources -> status `failed`, non-empty `error`.
+- Non-PDF source page (`http_page`) -> status `skipped`, reason `ebs_or_portal_link_not_automated`.
+- Unknown/invalid `rpd_id` in session/resolve -> backend 404.
+- API key mismatch -> backend 401.
+- Rate limit exceeded -> backend 429.
 
-**Challenge**: System was selecting wrong pages (TOC "page 36" = PDF page 44), causing 0% accuracy.
+- Rate limit exceeded -> backend 429.
 
-**Solution**: Universal page offset detection algorithm.
+## GitHub Pages Notes (legacy)
 
-- `OFFSET_FIX_COMPLETE.md` - **CRITICAL FIX** - Page offset detection implementation
-- `DETAILED_ACCURACY_VERIFICATION.md` - Before/after accuracy comparison
-
-**Result**: Accuracy improved from 0% to 82.4% - the breakthrough that made the system viable.
-
-### 📝 **04-content-generation/**
-**Problem: Generate comprehensive, accurate lecture content**
-
-**Challenge**: Balance between content length, accuracy, and generation speed.
-
-**Solution**: Two-stage generation (outline → sections → combine) with anti-hallucination measures.
-
-- `TWO_STAGE_GENERATION_RESULTS.md` - Two-stage generation methodology and results
-- `CURRENT_GENERATION_STATUS.md` - Generation pipeline status
-- `LLAMA_VS_GEMMA_COMPARISON.md` - Model comparison and selection
-- `PERFORMANCE_ANALYSIS.md` - Speed and quality optimization
-- `GEMMA_CONTENT_IMPROVEMENTS.md` - Content quality improvements
-- `GEMMA3_SOLUTION_FINAL.md` - Final model configuration
-
-**Result**: 2,000+ word lectures in ~5 minutes with 100% confidence scores.
-
-### ✅ **05-accuracy-validation/**
-**Problem: Detect and prevent LLM hallucinations**
-
-**Challenge**: Validate generated content against source material without false positives.
-
-**Solution**: Claim-based validation against actual pages used for generation.
-
-- `GLOBAL_ACCURACY_ANALYSIS.md` - **ACCURACY VERIFICATION** - 82.4% verified accuracy
-- `VALIDATION_FINDINGS.md` - Validation methodology development
-- `VALIDATION_IMPROVEMENTS.md` - Validation system evolution
-- `ACCURACY_VALIDATION_FINDINGS.md` - Detailed accuracy analysis
-
-**Result**: Reliable hallucination detection with 82.4% verified accuracy.
-
-### 📚 **06-multi-book-system/**
-**Problem: Support multiple textbooks for better content coverage**
-
-**Challenge**: Different books have different TOC formats and page numbering systems.
-
-**Solution**: Enhanced parsing with universal offset detection for any book format.
-
-- `BOOK_SELECTION_STRATEGY.md` - Multi-book selection strategy
-- `BOOK_ACQUISITION_GUIDE.md` - Book acquisition and integration guide
-
-**Result**: System works with any Russian Python textbook automatically.
-
-### 🏆 **07-final-results/**
-**Complete system results and production readiness**
-
-- `FINAL_RESULTS.md` - **COMPLETE RESULTS** - Full 12-lecture course generation
-- `RESULTS_COMPARISON.md` - Before/after system comparison
-- `FULL_COURSE_GENERATION_RESULTS.md` - Detailed course generation metrics
-- `CURRENT_STATUS_AND_RECOMMENDATIONS.md` - Production deployment recommendations
-- `FINAL_SOLUTION_SUMMARY.md` - Executive summary
-
-**Result**: 12/12 lectures generated, 82.4% accuracy, production-ready system.
-
----
-
-## 🎯 **Key Achievements Summary**
-
-### **Technical Breakthroughs**
-
-1. **Universal Page Offset Detection** ⭐
-   - **Problem**: TOC page numbers ≠ PDF page numbers
-   - **Solution**: Automatic offset detection algorithm
-   - **Impact**: 0% → 82.4% accuracy
-
-2. **TOC-Based Page Selection** 🎯
-   - **Problem**: Semantic search was slow and inaccurate
-   - **Solution**: LLM analyzes raw TOC directly
-   - **Impact**: 100% accurate, 8x faster
-
-3. **Two-Stage Generation** 📝
-   - **Problem**: Single-stage generation was too short
-   - **Solution**: Outline → Sections → Combine
-   - **Impact**: 312 → 2,130 words average
-
-### **Production Metrics**
-
-| Metric | Achievement | Status |
-|--------|-------------|--------|
-| **Success Rate** | 100% (12/12 lectures) | ✅ Perfect |
-| **Content Accuracy** | 82.4% (verified) | ✅ High |
-| **Content Length** | 2,130 words average | ✅ Comprehensive |
-| **Generation Speed** | 4.7 minutes per lecture | ✅ Acceptable |
-| **Consistency** | 100% confidence scores | ✅ Reliable |
-
----
-
-## 📖 **How to Read This Documentation**
-
-### **For New Team Members**
-1. Start with `01-project-overview/PROJECT_PROGRESS_ANALYSIS.md`
-2. Read `07-final-results/FINAL_RESULTS.md` for complete results
-3. Review `01-project-overview/ACADEMIC_SUMMARY.md` for technical details
-
-### **For Technical Implementation**
-1. `01-project-overview/FINAL_ARCHITECTURE.md` - System design
-2. `02-toc-page-selection/TOC_SOLUTION.md` - Core algorithm
-3. `03-page-offset-problem/OFFSET_FIX_COMPLETE.md` - Critical fix
-
-### **For Academic Research**
-1. `01-project-overview/ACADEMIC_SUMMARY.md` - Research contributions
-2. `05-accuracy-validation/GLOBAL_ACCURACY_ANALYSIS.md` - Accuracy methodology
-3. `04-content-generation/LLAMA_VS_GEMMA_COMPARISON.md` - Model analysis
-
-### **For Production Deployment**
-1. `07-final-results/CURRENT_STATUS_AND_RECOMMENDATIONS.md` - Deployment guide
-2. `06-multi-book-system/BOOK_SELECTION_STRATEGY.md` - Multi-book setup
-3. `01-project-overview/DEVELOPMENT.md` - Setup instructions
-
----
-
-## 🗂️ **Archive Structure**
-
-### **archive/test-files/**
-All test scripts and experimental code used during development.
-
-### **archive/experimental-prompts/**
-Prompt engineering experiments and iterations.
-
-### **archive/old-generations/**
-Previous lecture generation attempts and results.
-
-### **archive/debug-files/**
-Debug outputs, temporary files, and development artifacts.
-
----
-
-## 🚀 **Current Status**
-
-**✅ PRODUCTION READY**
-
-The system successfully:
-- Generates complete 12-lecture Python courses
-- Achieves 82.4% verified accuracy
-- Produces 2,000+ word comprehensive lectures
-- Works with any Russian Python textbook
-- Maintains 100% reliability (12/12 success rate)
-
-**Next Steps**: Deploy to production and continue multi-book testing in parallel.
-
----
-
-## 📞 **Quick Reference**
-
-- **Main Results**: `07-final-results/FINAL_RESULTS.md`
-- **Technical Details**: `01-project-overview/ACADEMIC_SUMMARY.md`
-- **Accuracy Verification**: `05-accuracy-validation/GLOBAL_ACCURACY_ANALYSIS.md`
-- **Key Breakthrough**: `03-page-offset-problem/OFFSET_FIX_COMPLETE.md`
-- **Production Guide**: `07-final-results/CURRENT_STATUS_AND_RECOMMENDATIONS.md`
-
-**Project Status**: ✅ Complete and ready for educational deployment at KPFU.
+See section **GitHub Pages** above.

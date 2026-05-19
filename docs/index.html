@@ -1,0 +1,271 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Генератор лекций — РПД</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header__brand">
+        <div class="header__logo" aria-hidden="true">РПД</div>
+        <div>
+          <h1>Генератор учебных материалов</h1>
+          <p class="header__tagline">РПД → источники → пакет → проверка экспертом → экспорт</p>
+        </div>
+      </div>
+    </header>
+
+    <nav class="steps" aria-label="Шаги">
+      <div class="step-pill" id="stepPill1" data-step="1">
+        1 · Подключение
+        <span>API</span>
+      </div>
+      <div class="step-pill" id="stepPill2" data-step="2">
+        2 · РПД
+        <span>файл и разбор</span>
+      </div>
+      <div class="step-pill" id="stepPill3" data-step="3">
+        3 · Генерация
+        <span>пакет</span>
+      </div>
+      <div class="step-pill" id="stepPill4" data-step="4">
+        4 · Проверка
+        <span>экспорт</span>
+      </div>
+    </nav>
+
+    <details class="settings">
+      <summary>Настройки API</summary>
+      <div class="settings__body">
+        <div class="field">
+          <label for="apiBase">Адрес сервера</label>
+          <input id="apiBase" type="text" value="http://127.0.0.1:8000/api/v1" autocomplete="url" />
+        </div>
+        <div class="field">
+          <label for="apiKey">Ключ доступа (необязательно)</label>
+          <input id="apiKey" type="text" placeholder="X-API-Key" autocomplete="off" />
+        </div>
+      </div>
+    </details>
+
+    <section class="card" id="cardUpload">
+      <h2 class="card__title">Загрузить рабочую программу</h2>
+      <p class="card__hint">PDF, DOCX или XLSX</p>
+
+      <label class="upload-zone" id="uploadZone" for="rpdFile">
+        <div class="upload-zone__icon" aria-hidden="true">📄</div>
+        <p class="upload-zone__text">Выберите файл или перетащите сюда</p>
+        <p class="upload-zone__sub">PDF · DOCX · XLSX</p>
+        <input id="rpdFile" type="file" accept=".pdf,.docx,.xlsx,.xls" />
+      </label>
+      <p class="file-name" id="fileName"></p>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn--primary" id="btnUpload">Разобрать РПД</button>
+      </div>
+    </section>
+
+    <section class="card is-disabled" id="cardSession">
+      <h2 class="card__title">Сессия и источники</h2>
+      <p class="card__hint">Только прямые PDF-ссылки из РПД</p>
+
+      <div class="status-row">
+        <span class="badge badge--idle" id="stateBadge">Ожидание</span>
+        <span class="badge badge--id" id="rpdId" title="Идентификатор сессии">—</span>
+      </div>
+      <p class="source-counts" id="sourceCounts">Источники: —</p>
+
+      <div class="sources-toolbar">
+        <button type="button" class="btn btn--ghost" id="btnSelectAllSources" disabled>Все PDF</button>
+        <button type="button" class="btn btn--ghost" id="btnClearSourceSelection" disabled>Снять выбор</button>
+      </div>
+      <div id="sourcesWrap">
+        <p class="empty-state">Сначала загрузите РПД</p>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn--secondary" id="btnResolve" disabled>Загрузить выбранные PDF</button>
+        <button type="button" class="btn btn--ghost" id="btnRefresh" disabled>Обновить</button>
+      </div>
+    </section>
+
+    <section class="card is-disabled" id="cardGenerate">
+      <h2 class="card__title">Сгенерировать пакет</h2>
+      <p class="card__hint">Лекция создаётся всегда; остальное — по флажкам</p>
+
+      <div class="field">
+        <label for="themeSelect">Тема</label>
+        <select id="themeSelect">
+          <option value="">— сначала загрузите РПД —</option>
+        </select>
+      </div>
+
+      <fieldset class="gen-options">
+        <legend>Настройки генерации</legend>
+        <label class="check-row"><input type="checkbox" id="optPresentation" checked /> Презентация (PPTX)</label>
+        <label class="check-row"><input type="checkbox" id="optLab" checked /> Лабораторная работа</label>
+        <label class="check-row"><input type="checkbox" id="optSelfcheck" checked /> Самопроверка</label>
+      </fieldset>
+
+      <fieldset class="user-sources-panel">
+        <legend>Свои источники (приоритет, без TOC)</legend>
+        <p class="card__hint">
+          Короткие тексты по теме: конспект, статья, методичка. Чанки из них идут в RAG с повышенным весом.
+        </p>
+        <div class="field">
+          <label for="userSourceTitle">Название</label>
+          <input id="userSourceTitle" type="text" placeholder="Например: Методичка по RSA" />
+        </div>
+        <div class="field">
+          <label for="userSourceText">Текст (Markdown)</label>
+          <textarea id="userSourceText" class="user-source-text" rows="5" placeholder="Вставьте материал по теме…"></textarea>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn--ghost" id="btnAddUserSource" disabled>Добавить источник</button>
+        </div>
+        <ul id="userSourcesList" class="user-sources-list"></ul>
+      </fieldset>
+
+      <div id="progressPanel" class="progress-panel hidden" aria-live="polite">
+        <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+          <div id="progressBarFill" class="progress-bar__fill"></div>
+        </div>
+        <p class="progress-meta">
+          <span id="progressPct" class="progress-pct"></span>
+          <span id="progressDetail" class="progress-detail muted"></span>
+        </p>
+        <ul id="progressSteps" class="progress-steps"></ul>
+        <div id="progressFeed" class="progress-feed"></div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn--accent" id="btnGeneratePackage" disabled>Сгенерировать пакет</button>
+        <button type="button" class="btn btn--ghost" id="btnGenerateLectureOnly" disabled>Только лекция</button>
+      </div>
+    </section>
+
+    <section class="card is-disabled" id="cardEditor">
+      <h2 class="card__title">Проверка экспертом</h2>
+      <p class="card__hint">Редактирование и предпросмотр перед экспортом</p>
+
+      <div class="editor-tabs" role="tablist">
+        <button type="button" class="editor-tab is-active" data-tab="lecture">Лекция</button>
+        <button type="button" class="editor-tab" data-tab="lab">Лабораторная</button>
+        <button type="button" class="editor-tab" data-tab="selfcheck">Самопроверка</button>
+        <button type="button" class="editor-tab" data-tab="slides">Презентация</button>
+      </div>
+
+      <div id="slidesPreviewPane" class="slides-preview-pane hidden">
+        <div
+          id="slideCarousel"
+          class="slide-carousel"
+          tabindex="0"
+          aria-label="Презентация — карусель слайдов"
+        >
+          <div class="slide-carousel__toolbar">
+            <span id="slideCarouselCounter" class="slide-carousel__counter">—</span>
+            <span class="slide-carousel__hint muted">← → · PgUp/PgDn · Home/End</span>
+          </div>
+          <div class="slide-carousel__stage-wrap">
+            <button type="button" id="slidePrev" class="slide-carousel__nav" aria-label="Предыдущий слайд">‹</button>
+            <div id="slideCarouselStage" class="slide-carousel__stage"></div>
+            <button type="button" id="slideNext" class="slide-carousel__nav" aria-label="Следующий слайд">›</button>
+          </div>
+          <div id="slideThumbs" class="slide-carousel__thumbs" role="tablist"></div>
+          <div class="slide-carousel__edit">
+            <p class="slide-carousel__edit-label">Правка текущего слайда</p>
+            <label class="field">
+              <span>Заголовок</span>
+              <input type="text" id="slideEditTitle" class="slide-edit-input" />
+            </label>
+            <label class="field" id="slideEditSubtitleWrap">
+              <span>Подзаголовок (титульный)</span>
+              <input type="text" id="slideEditSubtitle" class="slide-edit-input" />
+            </label>
+            <label class="field" id="slideEditBulletsWrap">
+              <span>Пункты (каждый с новой строки)</span>
+              <textarea id="slideEditBullets" class="slide-edit-bullets" rows="5"></textarea>
+            </label>
+            <div class="slide-edit-image-block hidden" id="slideEditImageBlock">
+              <label class="field">
+                <span>Изображение на слайде</span>
+                <input type="file" id="slideEditImage" accept="image/png,image/jpeg,image/webp,image/gif" />
+              </label>
+              <label class="field">
+                <span>Подпись к рисунку</span>
+                <input
+                  type="text"
+                  id="slideEditCaption"
+                  class="slide-edit-input"
+                  placeholder="Например: схема классификации угроз"
+                />
+                <span class="field-hint muted">На слайде: «Рис. N - …»</span>
+              </label>
+              <button type="button" class="btn btn--ghost btn--sm" id="slideEditImageClear">
+                Убрать изображение
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <label class="check-row editor-provenance-toggle">
+        <input type="checkbox" id="optShowProvenance" checked />
+        Показывать метки источников (CONCEPT_ORIGIN) в лекции
+      </label>
+
+      <div class="editor-split" id="editorSplit">
+        <div class="editor-pane">
+          <label class="editor-pane__label" for="editorSource">Markdown</label>
+          <textarea id="editorSource" class="editor-source" spellcheck="true" placeholder="Сначала сгенерируйте пакет…"></textarea>
+        </div>
+        <div class="editor-pane">
+          <label class="editor-pane__label">Предпросмотр</label>
+          <div id="editorPreview" class="editor-preview prose"></div>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span class="badge badge--idle" id="reviewBadge">Не проверено</span>
+      </div>
+      <div class="btn-row">
+        <button type="button" class="btn btn--ghost" id="btnSaveDraft" disabled>Сохранить черновик</button>
+        <button type="button" class="btn btn--primary" id="btnApprove" disabled>Утвердить для экспорта</button>
+      </div>
+      <p class="draft-hint muted" id="draftHint"></p>
+    </section>
+
+    <section class="card is-disabled" id="cardExport">
+      <h2 class="card__title">Экспорт</h2>
+      <p class="card__hint">После утверждения экспертом</p>
+
+      <p class="export-group-label">Весь пакет</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn--secondary" id="btnExportScorm" disabled>SCORM (.zip)</button>
+        <button type="button" class="btn btn--secondary" id="btnExportPdfAll" disabled>Всё в PDF (.zip)</button>
+      </div>
+
+      <p class="export-group-label">Презентация</p>
+      <div class="btn-row">
+        <button type="button" class="btn btn--secondary" id="btnExportPptx" disabled>PPTX</button>
+        <button type="button" class="btn btn--secondary" id="btnExportPresPdf" disabled>Презентация PDF</button>
+      </div>
+    </section>
+
+    <details class="log-panel">
+      <summary>Журнал ответа API</summary>
+      <pre id="log">Здесь появится ответ сервера…</pre>
+    </details>
+  </div>
+
+  <script src="./app.js"></script>
+  <script src="./progress-ui.js"></script>
+  <script src="./slides-carousel.js"></script>
+  <script src="./user-sources-ui.js"></script>
+  <script src="./package-ui.js"></script>
+</body>
+</html>
