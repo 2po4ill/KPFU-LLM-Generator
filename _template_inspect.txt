@@ -1,0 +1,29 @@
+﻿0: TITLE_AND_BODY
+    idx0:1, idx1:2, idx12:13
+1: TITLE
+    idx0:1, idx1:2, idx12:13
+2: ╨Ч╨░╨│╨╛╨╗╨╛╨▓╨╛╨║ ╤А╨░╨╖╨┤╨╡╨╗╨░
+    idx0:1, idx1:2, idx12:13
+3: ╨Ф╨▓╨░ ╨╛╨▒╤К╨╡╨║╤В╨░
+    idx0:1, idx1:2, idx12:13
+4: ╨б╤А╨░╨▓╨╜╨╡╨╜╨╕╨╡
+    idx0:1, idx1:2, idx2:2, idx12:13
+5: ╨в╨╛╨╗╤М╨║╨╛ ╨╖╨░╨│╨╛╨╗╨╛╨▓╨╛╨║
+    idx0:1, idx12:13
+6: ╨Я╤Г╤Б╤В╨╛╨╣ ╤Б╨╗╨░╨╣╨┤
+    idx12:13
+7: ╨Ю╨▒╤К╨╡╨║╤В ╤Б ╨┐╨╛╨┤╨┐╨╕╤Б╤М╤О
+    idx0:1, idx1:2, idx2:2, idx12:13
+8: ╨а╨╕╤Б╤Г╨╜╨╛╨║ ╤Б ╨┐╨╛╨┤╨┐╨╕╤Б╤М╤О
+    idx0:1, idx2:18, idx1:2, idx12:13
+--- slides ---
+Slide 1: TITLE_AND_BODY
+Slide 2: TITLE_AND_BODY
+Slide 3: TITLE_AND_BODY
+Slide 4: TITLE_AND_BODY
+Slide 5: TITLE_AND_BODY
+Slide 6: TITLE_AND_BODY
+Slide 7: TITLE_AND_BODY
+Slide 8: TITLE_AND_BODY
+Slide 9: TITLE_AND_BODY
+Slide 10: TITLE_AND_BODY

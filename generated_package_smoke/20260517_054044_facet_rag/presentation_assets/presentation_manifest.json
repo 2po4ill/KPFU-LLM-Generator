@@ -1,0 +1,14 @@
+{
+  "theme": "RSA",
+  "pdf_path": "..\\uploaded_books\\mzi.pdf",
+  "slide_count": 1,
+  "slides": [
+    {
+      "title": "Основные концепции",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": null
+    }
+  ]
+}

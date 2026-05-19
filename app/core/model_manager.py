@@ -120,8 +120,31 @@ class ModelManager:
             # Initialize Ollama client
             self.llm_model = ollama.AsyncClient(host=settings.ollama_url)
             
-            # Test model with a simple query
-            await self._test_llm_model()
+            # First real /generate call: loads weights into RAM/VRAM; can take minutes on cold start.
+            if getattr(settings, "llm_skip_warmup", False):
+                logger.warning(
+                    "Skipping LLM warmup (LLM_SKIP_WARMUP=true). "
+                    "First real generation may still be slow."
+                )
+            else:
+                logger.info(
+                    "Warming up LLM (first inference to Ollama; no output until this finishes)..."
+                )
+                timeout = float(getattr(settings, "llm_warmup_timeout_seconds", 0.0) or 0.0)
+                try:
+                    if timeout > 0:
+                        await asyncio.wait_for(
+                            self._test_llm_model(), timeout=timeout
+                        )
+                    else:
+                        await self._test_llm_model()
+                except asyncio.TimeoutError:
+                    logger.error(
+                        "LLM warmup timed out after %ss (LLM_WARMUP_TIMEOUT_SECONDS). "
+                        "Check Ollama is running and the model loads, or set LLM_SKIP_WARMUP=1.",
+                        timeout,
+                    )
+                    raise
             
             logger.info(f"LLM model {settings.llm_model} loaded successfully")
             
@@ -134,7 +157,25 @@ class ModelManager:
         """Load embedding model (lightweight, always loaded)"""
         logger.info(f"Loading embedding model: {settings.embedding_model}")
         
-        if self.use_mock_services or SentenceTransformer is None:
+        if SentenceTransformer is None:
+            if not self.use_mock_services:
+                raise RuntimeError(
+                    "sentence-transformers is required when USE_MOCK_SERVICES=false. "
+                    "Install: pip install sentence-transformers"
+                )
+            if not hasattr(self, "mock_services"):
+                from core.mock_services import get_mock_services
+                self.mock_services = get_mock_services()
+            self.embedding_model = self.mock_services["sentence_transformer"](
+                settings.embedding_model, device="cpu"
+            )
+            logger.info("Mock embedding model loaded (SentenceTransformer not installed)")
+            return
+
+        if self.use_mock_services:
+            if not hasattr(self, "mock_services"):
+                from core.mock_services import get_mock_services
+                self.mock_services = get_mock_services()
             self.embedding_model = self.mock_services["sentence_transformer"](
                 settings.embedding_model, device="cpu"
             )

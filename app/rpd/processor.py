@@ -1,14 +1,15 @@
-"""
+﻿"""
 Main RPD processing system that combines parsing and extraction
 """
 
 import logging
-from typing import Dict, Any, Optional, Union
+from typing import Dict, Any, Optional, Union, List
 from pathlib import Path
 from datetime import datetime
 
 from .parsers import parse_rpd_document, RPDParsingError
 from .extractor import RPDDataExtractor, RPDData
+from sources.discovery import build_normalized_sources
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,14 @@ class RPDProcessor:
             logger.info("Extracting structured data from RPD")
             rpd_data = await self.extractor.extract_rpd_data(parsed_data)
             result['extracted_data'] = self.extractor.to_dict(rpd_data)
-            
+            raw_text = parsed_data.get('raw_text', '') or ''
+            lit = result['extracted_data'].get('literature_references') or []
+            all_sources = build_normalized_sources(raw_text, lit)
+            result["extracted_data"]["discovered_sources"] = [
+                s for s in all_sources if s.get("kind") == "direct_pdf"
+            ]
+            result["extracted_data"]["discovered_sources_all"] = all_sources
+
             # Step 3: Validate completeness
             validation_result = self._validate_completeness(rpd_data)
             result['warnings'].extend(validation_result['warnings'])

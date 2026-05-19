@@ -1,0 +1,62 @@
+{
+  "grounding_mode": "hybrid",
+  "thresholds": {
+    "jaccard_min": 0.07,
+    "embedding_min": 0.52,
+    "hallucination_threshold": 0.25
+  },
+  "embedding_backend": "sentence_transformers",
+  "facet_hallucination_avg": 0.0,
+  "facet_hallucination_regenerations_total": 0,
+  "facets": [
+    {
+      "facet": "2.3. Атаки, их разновидности и методы защиты от них",
+      "hallucination_rate": 0.0,
+      "grounded_rate": 1.0,
+      "regenerations": 0,
+      "accepted": false,
+      "sentences_checked": 19
+    },
+    {
+      "facet": "2.1. Уязвимости и их классификация",
+      "hallucination_rate": 0.0,
+      "grounded_rate": 1.0,
+      "regenerations": 0,
+      "accepted": false,
+      "sentences_checked": 19
+    },
+    {
+      "facet": "2.2. Угрозы и их классификация",
+      "hallucination_rate": 0.0,
+      "grounded_rate": 1.0,
+      "regenerations": 0,
+      "accepted": false,
+      "sentences_checked": 17
+    }
+  ],
+  "score_distributions": {
+    "supported_jaccard": {
+      "n": 55,
+      "p50": 0.0353,
+      "p75": 0.0556
+    },
+    "unsupported_jaccard": {
+      "n": 0,
+      "p50": null,
+      "p75": null
+    },
+    "supported_embedding": {
+      "n": 55,
+      "p25": 0.6659,
+      "p50": 0.6961,
+      "p75": 0.7273
+    },
+    "unsupported_embedding": {
+      "n": 0,
+      "p50": null,
+      "p75": null
+    }
+  },
+  "suggested_embedding_min": 0.52,
+  "calibration_notes": "Raise FACET_SECTION_HALLUCINATION_EMBEDDING_MIN if unsupported p75 overlaps supported p25. Target facet_hallucination_avg <= hallucination_threshold."
+}

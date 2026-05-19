@@ -1,0 +1,106 @@
+{
+  "summary": {
+    "claims_total": 16,
+    "claims_supported": 16,
+    "threshold": 0.4,
+    "confidence": 1.0
+  },
+  "claims": [
+    {
+      "claim": "Для шифрования и дешифрования используются два разных ключа: открытый (public) и закрытый (private).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Алгоритм генерации ключей RSA включает в себя следующие этапы:",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Пара ключей (e, n) и (d, n) должна удовлетворять определенным условиям:",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В реальных алгоритмах RSA часто используются большие простые числа, которые невозможно вычислить с помощью современных компьютеров.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Система RSA относится к системам шифрования с открытым ключом, где для шифрования и расшифрования используются совершенно разные ключи.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Отношение сравнения по модулю натурального числа обладает свойствами: рефлексивностью, симметричностью и транзитивностью.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Классы эквивалентности, образованные целыми числами по этому отношению, называются вычетами.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Если a ≡ b (mod p) и c ≡ d (mod p), то a + c ≡ b + d (mod p).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Если a ≡ b (mod p) и c ≡ d (mod p), то ac ≡ bd (mod p).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Для любого натурального числа n > 0 множество классов вычетов по модулю n содержит ровно n элементов.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В кольце Z над вычетами можно выполнять арифметические операции сложения, вычитания, умножения и возведения в степень.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Если модуль n является простым числом, то множество ненулевых элементов кольца Z образует коммутативную группу.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В кольце K определены две арифметические операции сложения + и умножения ·.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Кольцо K удовлетворяет ассоциативности по сложению: (∀a, b, c ∈ K) a + (b + c) = (a + b) + c.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В кольце Z группа по сложению является абелевой n группой.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В кольце Z группа по умножению также является абелевой n группой.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "claims_total": 10,
+    "claims_supported": 10,
+    "threshold": 0.4,
+    "confidence": 1.0
+  },
+  "claims": [
+    {
+      "claim": "Два больших простых числа p и q.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Произведение p \\* q должно быть большим.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Функция Эйлера φ(n) должна быть рассчитана правильно.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Ключ шифрования e должен быть случайным и удовлетворять условию 1 < e < φ(n).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Секретный ключ d должен быть случайным и удовлетворять условию d \\* e ≡ 1 (mod φ(n)).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Функция Эйлера φ(n) = (p-1)(q-1), где p и q — простые числа.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Генерация случайного числа e такое, что 1 < e < φ(n) и gcd(e, φ(n)) = 1.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Генерация секретного ключа d такое, что d \\* e ≡ 1 (mod φ(n)).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Функция шифрования c = m^e mod n.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Функция расшифрования m = c^d mod n.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "theme": "Тема 2. Уязвимости, угрозы, атаки и их классификации",
+  "pdf_path": "app\\cache\\books\\d830d4c7ca94.pdf",
+  "slide_count": 17,
+  "slides": [
+    {
+      "title": "Классификация уязвимостей по уровню воздействия",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация уязвимостей по типу эксплуатации",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация уязвимостей по источнику",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Международные классификации уязвимостей",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "CVSS – количественная оценка уязвимости",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Угрозы – определение и значение",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация угроз по источнику",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация угроз по характеру воздействия",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация угроз по цели воздействия",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Классификация угроз по уровню сложности",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Категории кибератак",
+      "image_kind": "mermaid",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\1c949a5710be\\mermaid\\slide_7116911.png",
+      "image_note": "Категории кибератак",
+      "image_caption": "Категории кибератак",
+      "source_pages": []
+    },
+    {
+      "title": "Сетевые атаки и их защита",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Прикладные атаки и их защита",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Социальные атаки и их защита",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Трёхуровневый подход к защите",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Интеграция DevSecOps в управление уязвимостями",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    },
+    {
+      "title": "Итоги и практическое значение",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "image_caption": null,
+      "source_pages": null
+    }
+  ]
+}

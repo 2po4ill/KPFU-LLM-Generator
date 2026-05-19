@@ -1,0 +1,85 @@
+{
+  "theme": "RSA",
+  "pdf_path": "..\\uploaded_books\\mzi.pdf",
+  "slide_count": 10,
+  "slides": [
+    {
+      "title": "Что такое RSA",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\mzi_linux_sec\\445d0434ad7b\\page_0015\\p0015_snapshot.png",
+      "image_note": "стр. 15",
+      "source_pages": [
+        15
+      ]
+    },
+    {
+      "title": "Математический фундамент",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\mzi_linux_sec\\445d0434ad7b\\page_0016\\p0016_snapshot.png",
+      "image_note": "стр. 16",
+      "source_pages": [
+        16
+      ]
+    },
+    {
+      "title": "Генерация простых чисел p и q",
+      "image_kind": "placeholder",
+      "image_path": null,
+      "image_note": "Mermaid: установите mmdc (npm i -g @mermaid-js/mermaid-cli).",
+      "source_pages": []
+    },
+    {
+      "title": "Построение параметров RSA",
+      "image_kind": "placeholder",
+      "image_path": null,
+      "image_note": "Mermaid: установите mmdc (npm i -g @mermaid-js/mermaid-cli).",
+      "source_pages": []
+    },
+    {
+      "title": "Структура ключей RSA",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\mzi_linux_sec\\445d0434ad7b\\page_0017\\p0017_snapshot.png",
+      "image_note": "стр. 17",
+      "source_pages": [
+        17
+      ]
+    },
+    {
+      "title": "Быстрое возведение в степень",
+      "image_kind": "placeholder",
+      "image_path": null,
+      "image_note": "Mermaid: установите mmdc (npm i -g @mermaid-js/mermaid-cli).",
+      "source_pages": []
+    },
+    {
+      "title": "Рекомендованные размеры ключей",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": []
+    },
+    {
+      "title": "Угрозы и ошибки реализации",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\mzi_linux_sec\\445d0434ad7b\\page_0018\\p0018_snapshot.png",
+      "image_note": "стр. 18",
+      "source_pages": [
+        18
+      ]
+    },
+    {
+      "title": "Применения RSA",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": []
+    },
+    {
+      "title": "Краткое резюме",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": []
+    }
+  ]
+}

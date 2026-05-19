@@ -1,0 +1,28 @@
+СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+
+ГОСТ Р 7.0.100-2018. Библиографическая запись. Библиографическое описание. Общие требования и правила составления. – М.: Стандартинформ, 2019.
+ГОСТ Р 7.0.5-2008. Библиографическая ссылка. – М.: Стандартинформ, 2008.
+Федеральный государственный образовательный стандарт высшего образования по направлению подготовки 09.03.04 «Программная инженерия» (уровень бакалавриата) : утв. приказом Минобрнауки России от 06.12.2021 № 959 [Электронный ресурс]. – URL: https://fgosvo.ru/ (дата обращения: 30.03.2026).
+Jurafsky D., Martin J.H. Speech and Language Processing: An Introduction to Natural Language Processing, Computational Linguistics, and Speech Recognition [Электронный ресурс] // Stanford University. – 3rd ed. (draft). – 2024. – URL: https://web.stanford.edu/~jurafsky/slp3/ (дата обращения: 30.03.2026).
+Tunstall L., von Werra L., Wolf T. Natural Language Processing with Transformers: Building Language Applications with Hugging Face. – Sebastopol: O’Reilly Media, 2022. – 400 p.
+Géron A. Hands-On Machine Learning with Scikit-Learn, Keras, and TensorFlow. – 3rd ed. – Sebastopol: O’Reilly Media, 2022.
+Goodfellow I., Bengio Y., Courville A. Deep Learning. – Cambridge: MIT Press, 2016.
+Vaswani A., Shazeer N., Parmar N. et al. Attention Is All You Need // Advances in Neural Information Processing Systems (NeurIPS). – 2017. – Vol. 30.
+Brown T., Mann B., Ryder N. et al. Language Models are Few-Shot Learners // Advances in Neural Information Processing Systems (NeurIPS). – 2020. – Vol. 33. – P. 1877–1901.
+Wei J., Wang X., Schuurmans D. et al. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models // Advances in Neural Information Processing Systems (NeurIPS). – 2022. – Vol. 35. – P. 24824–24837.
+Liu P., Yuan W., Fu J. et al. Pre-train, Prompt, and Predict: A Systematic Survey of Prompting Methods in Natural Language Processing // ACM Computing Surveys. – 2023. – Vol. 55, № 9. – Article 195. – P. 1–35.
+White J., Fu Q., Hays S. et al. A Prompt Pattern Catalog to Enhance Prompt Engineering with ChatGPT [Электронный ресурс] // arXiv.org. – 2023. – URL: https://arxiv.org/abs/2302.11382 (дата обращения: 30.03.2026).
+Reimers N., Gurevych I. Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks // Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing (EMNLP). – 2019. – P. 3982–3992.
+Python Software Foundation. The Python Language Reference [Электронный ресурс] // docs.python.org. – URL: https://docs.python.org/3/reference/ (дата обращения: 30.03.2026).
+Python Software Foundation. The Python Standard Library [Электронный ресурс] // docs.python.org. – URL: https://docs.python.org/3/library/ (дата обращения: 30.03.2026).
+Ramírez S. FastAPI [Электронный ресурс] // fastapi.tiangolo.com. – URL: https://fastapi.tiangolo.com/ (дата обращения: 30.03.2026).
+Pydantic Documentation [Электронный ресурс] // docs.pydantic.dev. – URL: https://docs.pydantic.dev/latest/ (дата обращения: 30.03.2026).
+The PostgreSQL Global Development Group. PostgreSQL Documentation [Электронный ресурс] // postgresql.org. – URL: https://www.postgresql.org/docs/current/ (дата обращения: 30.03.2026).
+Redis Ltd. Redis Documentation [Электронный ресурс] // redis.io. – URL: https://redis.io/docs/ (дата обращения: 30.03.2026).
+SQLAlchemy Documentation [Электронный ресурс] // docs.sqlalchemy.org. – URL: https://docs.sqlalchemy.org/en/20/ (дата обращения: 30.03.2026).
+Artifex Software. PyMuPDF Documentation [Электронный ресурс] // pymupdf.readthedocs.io. – URL: https://pymupdf.readthedocs.io/en/latest/ (дата обращения: 30.03.2026).
+pdfplumber [Электронный ресурс] // GitHub. – URL: https://github.com/jsvine/pdfplumber (дата обращения: 30.03.2026).
+Ollama [Электронный ресурс] // GitHub. – URL: https://github.com/ollama/ollama (дата обращения: 30.03.2026).
+Telegram Bot API [Электронный ресурс] // core.telegram.org. – URL: https://core.telegram.org/bots/api (дата обращения: 30.03.2026).
+Advanced Distributed Learning Initiative. Sharable Content Object Reference Model (SCORM®) [Электронный ресурс] // scorm.com. – URL: https://scorm.com/ (дата обращения: 30.03.2026).
+Moodle Pty Ltd. Moodle Documentation [Электронный ресурс] // docs.moodle.org. – URL: https://docs.moodle.org/ (дата обращения: 30.03.2026).

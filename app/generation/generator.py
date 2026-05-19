@@ -763,12 +763,14 @@ async def get_content_generator(
     embedding_service=None,
     pdf_processor=None,
     use_mock: bool = False
-) -> ContentGenerator:
-    """Get global content generator instance"""
-    global content_generator
-    
-    if content_generator is None:
-        content_generator = ContentGenerator(use_mock=use_mock)
-        await content_generator.initialize(model_manager, embedding_service, pdf_processor)
-    
-    return content_generator
+) -> Any:
+    """
+    Backward-compatible factory.
+    Delegates to production generator v4 so all runtime paths use one generator.
+    """
+    from generation.generator_v4 import get_production_content_generator
+    return await get_production_content_generator(
+        model_manager=model_manager,
+        pdf_processor=pdf_processor,
+        use_mock=use_mock,
+    )

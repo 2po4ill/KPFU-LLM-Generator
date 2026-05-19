@@ -5,6 +5,7 @@ Version 2 - No chunking, proper validation
 
 import logging
 import time
+import json
 import numpy as np
 from pathlib import Path
 from typing import Dict, Any, List, Optional
@@ -346,6 +347,193 @@ class ContentGenerator:
         
         return sorted(pages)
     
+    def _build_section_ranges(self, sections: List[Dict[str, Any]], max_section_span: int = 8) -> List[Dict[str, Any]]:
+        """
+        Build stable section ranges with defensive boundaries.
+        
+        Rules:
+        - Deduplicate sections by number (keep smallest page).
+        - Sort by page to avoid malformed TOC ordering issues.
+        - End page is min(next_start - 1, start + max_section_span).
+        - Last section span is capped by max_section_span.
+        """
+        if not sections:
+            return []
+        
+        dedup_by_number = {}
+        for section in sections:
+            section_number = section.get('number')
+            section_page = section.get('page')
+            section_title = section.get('title')
+            if section_number is None or section_page is None or section_title is None:
+                continue
+            
+            existing = dedup_by_number.get(section_number)
+            if existing is None or section_page < existing['page']:
+                dedup_by_number[section_number] = {
+                    'number': section_number,
+                    'title': section_title,
+                    'page': section_page
+                }
+        
+        ordered_sections = sorted(dedup_by_number.values(), key=lambda item: item['page'])
+        if not ordered_sections:
+            return []
+        
+        for i, section in enumerate(ordered_sections):
+            start_page = section['page']
+            if i < len(ordered_sections) - 1:
+                next_start_page = ordered_sections[i + 1]['page']
+                inferred_end_page = next_start_page - 1
+                if inferred_end_page < start_page:
+                    inferred_end_page = start_page
+                section['end_page'] = min(inferred_end_page, start_page + max_section_span)
+            else:
+                section['end_page'] = start_page + max_section_span
+        
+        return ordered_sections
+    
+    def _apply_top_k_pages(self, pages: List[int], top_k: Optional[int]) -> List[int]:
+        """
+        Apply deterministic top-k cap to selected pages.
+        
+        - top_k <= 0 or None: no cap
+        - otherwise: keep first top_k pages from sorted unique list
+        """
+        unique_sorted_pages = sorted(set(pages))
+        if top_k is None or top_k <= 0:
+            return unique_sorted_pages
+        
+        if len(unique_sorted_pages) <= top_k:
+            return unique_sorted_pages
+        
+        trimmed = unique_sorted_pages[:top_k]
+        logger.info(
+            "TOC top-k cap applied: %s -> %s pages (top_k=%s)",
+            len(unique_sorted_pages),
+            len(trimmed),
+            top_k
+        )
+        return trimmed
+    
+    def _select_top_k_pages_by_section_scores(
+        self,
+        sections: List[Dict[str, Any]],
+        section_scores: Dict[str, float],
+        top_k: Optional[int],
+        buffer_pages: int = 1
+    ) -> List[int]:
+        """
+        Score pages using section relevance and keep top-k pages.
+        
+        Page score:
+        - base: section score [0, 1]
+        - small distance penalty from section start (0.01 per page)
+        
+        If a page belongs to multiple sections, keep the max score.
+        """
+        if not sections:
+            return []
+        
+        page_scores: Dict[int, float] = {}
+        for section in sections:
+            sec_num = section["number"]
+            start_page = section["page"]
+            end_page = section["end_page"]
+            base_score = float(section_scores.get(sec_num, 0.5))
+            if base_score < 0.0:
+                base_score = 0.0
+            if base_score > 1.0:
+                base_score = 1.0
+            
+            last_page = end_page + max(0, buffer_pages)
+            for page in range(start_page, last_page + 1):
+                page_score = base_score - 0.01 * max(0, page - start_page)
+                previous = page_scores.get(page)
+                if previous is None or page_score > previous:
+                    page_scores[page] = page_score
+        
+        ranked_pages = sorted(page_scores.items(), key=lambda item: (-item[1], item[0]))
+        ordered_pages = [page for page, _ in ranked_pages]
+        if top_k is None or top_k <= 0:
+            return ordered_pages
+        return ordered_pages[:top_k]
+
+    async def _score_sections_by_theme(
+        self,
+        theme: str,
+        selected_sections: List[Dict[str, Any]]
+    ) -> Dict[str, float]:
+        """
+        Ask LLM to score selected TOC sections by theme relevance.
+        Returns map: section_number -> score [0..1].
+        """
+        if not selected_sections:
+            return {}
+        
+        if not self.model_manager:
+            return {section["number"]: 0.5 for section in selected_sections}
+        
+        try:
+            llm_model = await self.model_manager.get_llm_model()
+            section_lines = [
+                f'- {section["number"]}: {section["title"]} (pages {section["page"]}-{section["end_page"]})'
+                for section in selected_sections
+            ]
+            prompt = f"""Тема лекции: "{theme}"
+
+Оцени релевантность каждого раздела оглавления к теме.
+Верни СТРОГО JSON без пояснений:
+{{
+  "scores": [
+    {{"number": "7.4", "score": 0.95}},
+    {{"number": "8.1", "score": 0.40}}
+  ]
+}}
+
+Оценка score от 0 до 1:
+- 1.0 = максимально релевантно теме
+- 0.0 = не относится к теме
+
+Разделы для оценки:
+{chr(10).join(section_lines)}
+"""
+
+            response = await llm_model.generate(
+                model=settings.llm_model,
+                prompt=prompt,
+                options={
+                    "temperature": 0.1,
+                    "num_predict": 400
+                }
+            )
+            response_text = response.get("response", "").strip()
+            parsed_scores: Dict[str, float] = {}
+            
+            json_start = response_text.find("{")
+            json_end = response_text.rfind("}")
+            if json_start != -1 and json_end != -1 and json_end > json_start:
+                payload = json.loads(response_text[json_start:json_end + 1])
+                for item in payload.get("scores", []):
+                    number = str(item.get("number", "")).strip()
+                    raw_score = item.get("score")
+                    if not number:
+                        continue
+                    try:
+                        score = float(raw_score)
+                    except (TypeError, ValueError):
+                        continue
+                    parsed_scores[number] = min(1.0, max(0.0, score))
+            
+            # Ensure all selected sections have a score.
+            for section in selected_sections:
+                parsed_scores.setdefault(section["number"], 0.5)
+            
+            return parsed_scores
+        except Exception as e:
+            logger.warning(f"Failed to score selected sections with LLM: {e}")
+            return {section["number"]: 0.5 for section in selected_sections}
+    
     def _parse_toc_with_regex(self, toc_text: str) -> List[Dict[str, Any]]:
         """
         Parse TOC using regex to extract sections
@@ -364,19 +552,26 @@ class ContentGenerator:
             if not line:
                 continue
             
-            # Multiple patterns to handle different TOC formats
+            # Multiple patterns to handle different TOC formats.
+            # Notes:
+            # - Use IGNORECASE because many books render "ГЛАВА" in uppercase.
+            # - Allow Unicode ellipsis "…" because TOC lines often use it instead of dots ".".
+            # - Support "§" sections.
             patterns = [
                 # Original pattern: "7.4 Строки . . . . 36"
-                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+[.\s]+(\d+)\s*$',
+                r'^(\d+(?:\.\d+)?)\s+(.+?)\s+[.\u2026\s]+(\d+)\s*$',
                 
                 # Simple pattern: "7.4 Строки 36"
                 r'^(\d+(?:\.\d+)?)\s+(.+?)\s+(\d+)\s*$',
                 
                 # Russian academic: "Глава 1. Title .... 15"
-                r'^(?:Глава|Chapter|Раздел)\s+(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                r'^(?:Глава|ГЛАВА|Chapter|Раздел)\s+(\d+)\.?\s+(.+?)\s+[.\u2026\s]*(\d+)\s*$',
+
+                # Sections with "§ 1. Title .... 14"
+                r'^§\s*(\d+)\.?\s+(.+?)\s+[.\u2026\s]*(\d+)\s*$',
                 
                 # Numbered: "1. Title .... 15"
-                r'^(\d+)\.?\s+(.+?)\s+[.\s]*(\d+)\s*$',
+                r'^(\d+)\.?\s+(.+?)\s+[.\u2026\s]*(\d+)\s*$',
                 
                 # Flexible: any number + text + number at end
                 r'^(\d+(?:\.\d+)?)\s+(.+?)\s+(\d+)$'
@@ -384,20 +579,20 @@ class ContentGenerator:
             
             matched = False
             for pattern in patterns:
-                match = re.match(pattern, line)
+                match = re.match(pattern, line, flags=re.IGNORECASE)
                 if match:
                     section_num = match.group(1)
                     title = match.group(2).strip()
                     
                     # Clean title: remove excessive dots and spaces
-                    title = re.sub(r'[.\s]+$', '', title)  # Remove trailing dots/spaces
+                    title = re.sub(r'[.\u2026\s]+$', '', title)  # Remove trailing dots/ellipsis/spaces
                     title = re.sub(r'\s+', ' ', title)     # Normalize spaces
                     
                     try:
                         page = int(match.group(3))
                         
                         # Only add if title is meaningful
-                        if len(title) > 2 and not re.match(r'^[.\s]*$', title):
+                        if len(title) > 2 and not re.match(r'^[.\u2026\s]*$', title):
                             # Clean title: add spaces to stuck-together words
                             title = self._add_spaces_to_russian_text(title)
                             
@@ -414,20 +609,9 @@ class ContentGenerator:
             if matched:
                 continue
         
-        # Calculate page ranges (end = next section's start - 1)
-        for i in range(len(sections)):
-            if i < len(sections) - 1:
-                sections[i]['end_page'] = sections[i + 1]['page'] - 1
-            else:
-                # Last section: assume 10 pages
-                sections[i]['end_page'] = sections[i]['page'] + 10
-            
-            # Fix: ensure start <= end (swap if needed)
-            if sections[i]['page'] > sections[i]['end_page']:
-                sections[i]['page'], sections[i]['end_page'] = sections[i]['end_page'], sections[i]['page']
-        
-        logger.info(f"Parsed {len(sections)} sections from TOC using enhanced regex")
-        return sections
+        ranged_sections = self._build_section_ranges(sections)
+        logger.info(f"Parsed {len(ranged_sections)} sections from TOC using enhanced regex")
+        return ranged_sections
     
     async def _add_spaces_to_russian_text_with_llm(self, text: str) -> str:
         """
@@ -558,49 +742,68 @@ class ContentGenerator:
 ВАЖНО:
 - Если книга НЕ по этой теме (например, книга по физике, а тема про программирование), верни "0"
 - Если тема НЕ соответствует содержанию книги, верни "0"
-- Выбирай только релевантные разделы, которые помогут раскрыть тему
+- Выбирай релевантные разделы, которые помогут раскрыть тему.
+- Верни релевантные разделы, которые помогут раскрыть тему.
 
 Оглавление книги:
 {full_toc}
 
-Ответ (номера разделов или "0" если книга не подходит):"""
+Ответ (строго в одном из форматов):
+- "0" если книга не подходит
+- или список номеров разделов через запятую, без дополнительных текста/чисел (например: 6,16,26)
+"""
             
             logger.info(f"Sending full TOC ({len(full_toc)} chars) to Gemma")
             
             response = await llm_model.generate(
                 model=settings.llm_model,
                 prompt=prompt,
-                options={
-                    "temperature": 0.1,
-                    "num_predict": 100
-                }
+                options={"temperature": 0.1},
             )
             
-            response_text = response.get('response', '').strip()
-            logger.info(f"Gemma response: {response_text}")
+            response_text = str(response.get("response", "") or "").strip()
+            if not response_text:
+                response_text = str(response.get("thinking", "") or "").strip()
+            logger.info(f"TOC LLM response: {response_text[:300]}")
             
             # Parse section numbers from response
-            section_numbers = self._parse_section_numbers(response_text)
+            valid_section_numbers = {section['number'] for section in sections}
+            section_numbers = self._parse_section_numbers(response_text, valid_section_numbers)
             
             # Convert section numbers to page ranges
+            selected_sections = []
             all_ranges = []
             for sec_num in section_numbers:
                 matching_section = next((s for s in sections if s['number'] == sec_num), None)
                 if matching_section:
+                    selected_sections.append(matching_section)
                     all_ranges.append((matching_section['page'], matching_section['end_page']))
             
             # Step 4: Add +1 buffer to ranges
-            final_pages = self._add_buffer_to_ranges(all_ranges, buffer_pages=1)
+            if settings.toc_page_top_k_per_book > 0 and selected_sections:
+                section_scores = await self._score_sections_by_theme(theme, selected_sections)
+                final_pages = self._select_top_k_pages_by_section_scores(
+                    selected_sections,
+                    section_scores,
+                    settings.toc_page_top_k_per_book,
+                    buffer_pages=1
+                )
+            else:
+                final_pages = self._add_buffer_to_ranges(all_ranges, buffer_pages=1)
+                final_pages = self._apply_top_k_pages(final_pages, settings.toc_page_top_k_per_book)
             
             if not final_pages:
                 return [0]
             
             logger.info(f"Selected {len(final_pages)} pages: {final_pages}")
             
-            # No page limit - process all relevant pages
-            # Deduplication in generator_v3 will handle concept overlap
-            if len(final_pages) > 50:
-                logger.info(f"Processing {len(final_pages)} pages (no limit with deduplication)")
+            if settings.toc_page_top_k_per_book > 0:
+                logger.info(
+                    f"Configured TOC top-k per book: {settings.toc_page_top_k_per_book}; "
+                    f"selected {len(final_pages)} pages after cap"
+                )
+            elif len(final_pages) > 50:
+                logger.info(f"Processing {len(final_pages)} pages (no top-k cap configured)")
             
             return final_pages
             
@@ -608,7 +811,7 @@ class ContentGenerator:
             logger.error(f"Error getting page numbers from TOC: {e}", exc_info=True)
             return []
     
-    def _parse_section_numbers(self, response_text: str) -> List[str]:
+    def _parse_section_numbers(self, response_text: str, valid_section_numbers: Optional[set[str]] = None) -> List[str]:
         """
         Parse section numbers from LLM response
         
@@ -618,11 +821,28 @@ class ContentGenerator:
         """
         import re
         
-        # Find all patterns like "7.4" or "12.8"
-        pattern = r'\b\d+(?:\.\d+)?\b'
-        matches = re.findall(pattern, response_text)
+        if not response_text:
+            return []
         
-        return matches
+        normalized = response_text.strip()
+        if normalized == "0":
+            return []
+        
+        # Accept only comma/whitespace separated section-like identifiers.
+        tokens = [token.strip() for token in re.split(r'[,\s]+', normalized) if token.strip()]
+        selected = []
+        seen = set()
+        for token in tokens:
+            if not re.fullmatch(r'\d+(?:\.\d+)?', token):
+                continue
+            if valid_section_numbers is not None and token not in valid_section_numbers:
+                continue
+            if token in seen:
+                continue
+            seen.add(token)
+            selected.append(token)
+        
+        return selected
     
     def _expand_page_ranges(
         self,
@@ -1066,8 +1286,10 @@ class ContentGenerator:
                     )
                     max_similarity = max(max_similarity, similarity)
                 
-                # Claim is supported if similarity > 0.4
-                if max_similarity > 0.4:
+                claim_sim_min = float(
+                    getattr(settings, "package_validation_claim_similarity", 0.45) or 0.45
+                )
+                if max_similarity > claim_sim_min:
                     supported += 1
                     logger.debug(f"Claim supported (sim={max_similarity:.2f}): {claim[:50]}...")
                 else:
@@ -1182,12 +1404,14 @@ async def get_content_generator(
     model_manager=None,
     pdf_processor=None,
     use_mock: bool = False
-) -> ContentGenerator:
-    """Get global content generator instance"""
-    global content_generator
-    
-    if content_generator is None:
-        content_generator = ContentGenerator(use_mock=use_mock)
-        await content_generator.initialize(model_manager, pdf_processor)
-    
-    return content_generator
+) -> Any:
+    """
+    Backward-compatible factory.
+    Delegates to production generator v4 so all runtime paths use one generator.
+    """
+    from generation.generator_v4 import get_production_content_generator
+    return await get_production_content_generator(
+        model_manager=model_manager,
+        pdf_processor=pdf_processor,
+        use_mock=use_mock,
+    )

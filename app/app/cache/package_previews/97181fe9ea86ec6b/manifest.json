@@ -1,0 +1,147 @@
+{
+  "fingerprint": "2aaff4ad32531aec",
+  "theme_title": "Уязвимости, угрозы, атаки и их классификации.",
+  "slides": [
+    {
+      "layout": "title",
+      "title": "Уязвимости, угрозы, атаки и их классификации",
+      "subtitle": "Дисциплина: E (модулю) / Программная инженерия",
+      "bullets": [],
+      "image_url": null,
+      "image_kind": null
+    },
+    {
+      "layout": "content",
+      "title": "Триада информационной безопасности",
+      "subtitle": "",
+      "bullets": [
+        "Конфиденциальность – защита от несанкционированного доступа",
+        "Целостность – гарантия неизменности данных",
+        "Доступность – обеспечение непрерывного доступа законных пользователей"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_001.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Ключевые понятия",
+      "subtitle": "",
+      "bullets": [
+        "Уязвимость – слабое место, позволяющее атаковать систему",
+        "Угроза – потенциальный источник вреда или компрометации",
+        "Атака – реализация уязвимости с целью нарушения"
+      ],
+      "image_url": null,
+      "image_kind": null
+    },
+    {
+      "layout": "content",
+      "title": "Классификация уязвимостей",
+      "subtitle": "",
+      "bullets": [
+        "Программные уязвимости – ошибки кода и конфигураций",
+        "Аппаратные уязвимости – недостатки микросхем и устройств",
+        "Человеческие уязвимости – ошибки операторов и пользователей",
+        "Процессные уязвимости – недостатки процедур и политик"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_003.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Классификация угроз",
+      "subtitle": "",
+      "bullets": [
+        "Естественные – стихийные бедствия, электросбои",
+        "Технические – сбои оборудования, программные ошибки",
+        "Человеческие – инсайдеры, социальная инженерия",
+        "Организационные – недостатки управления и контроля"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_004.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Классификация атак",
+      "subtitle": "",
+      "bullets": [
+        "Сетевые – DDoS, сканирование портов",
+        "Прикладные – SQL‑инъекции, XSS",
+        "Социальные – фишинг, предтекстинг",
+        "Цепочка поставок – компрометация компонентов"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_005.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Модель ATT&CK: тактики",
+      "subtitle": "",
+      "bullets": [
+        "Reconnaissance – сбор информации о цели",
+        "Initial Access – получение начального доступа",
+        "Execution – запуск вредоносного кода",
+        "Persistence – обеспечение длительного присутствия",
+        "Privilege Escalation – повышение прав"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_006.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Аудит действий пользователей (UAM)",
+      "subtitle": "",
+      "bullets": [
+        "Сбор логов из систем, приложений и IAM",
+        "Нормализация и обогащение данных",
+        "Корреляция событий по правилам и ML‑моделям",
+        "Детекция аномалий поведения",
+        "Оповещение и автоматическое реагирование"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_007.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Техники корреляции событий",
+      "subtitle": "",
+      "bullets": [
+        "Статические правила‑корреляции",
+        "Шаблоны MITRE ATT&CK",
+        "Машинное обучение на исторических данных",
+        "Контекстный анализ (гео, роль, время)",
+        "Пост‑корреляция с инцидент‑менеджментом"
+      ],
+      "image_url": null,
+      "image_kind": null
+    },
+    {
+      "layout": "content",
+      "title": "Сценарий атаки: фишинг → экfiltration",
+      "subtitle": "",
+      "bullets": [
+        "Фишинг‑сообщение → клик и ввод учётных данных",
+        "Логин в системе → повышение привилегий",
+        "Поиск ценных файлов → упаковка данных",
+        "Экспорт данных через внешние каналы"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_009.png",
+      "image_kind": "figure"
+    },
+    {
+      "layout": "content",
+      "title": "Практики снижения риска",
+      "subtitle": "",
+      "bullets": [
+        "Регулярный патч‑менеджмент и обновления",
+        "Обучение персонала и симуляции фишинга",
+        "Многофакторная аутентификация",
+        "Мониторинг поведения пользователей",
+        "Разработанный план реагирования на инциденты"
+      ],
+      "image_url": "/rpd/presentation-preview/image?fingerprint=2aaff4ad32531aec&theme_title=%D0%A3%D1%8F%D0%B7%D0%B2%D0%B8%D0%BC%D0%BE%D1%81%D1%82%D0%B8%2C%20%D1%83%D0%B3%D1%80%D0%BE%D0%B7%D1%8B%2C%20%D0%B0%D1%82%D0%B0%D0%BA%D0%B8%20%D0%B8%20%D0%B8%D1%85%20%D0%BA%D0%BB%D0%B0%D1%81%D1%81%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8.&file=slide_010.png",
+      "image_kind": "figure"
+    }
+  ],
+  "slide_count": 11
+}

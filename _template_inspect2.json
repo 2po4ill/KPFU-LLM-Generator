@@ -1,0 +1,227 @@
+{
+  "slide_size_in": [
+    10.0,
+    5.625
+  ],
+  "slide_count": 3,
+  "layout_count": 9,
+  "layouts": [
+    {
+      "index": 0,
+      "name": "TITLE_AND_BODY",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;10;p12"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;11;p12"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;12;p12"
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "name": "TITLE",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;14;p13"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;15;p13"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;16;p13"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "name": "Заголовок раздела",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;18;p14"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;19;p14"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;20;p14"
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "name": "Два объекта",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;22;p15"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;23;p15"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;24;p15"
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Сравнение",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;26;p16"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;27;p16"
+        },
+        {
+          "idx": 2,
+          "type": "2",
+          "name": "Google Shape;28;p16"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;29;p16"
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "name": "Только заголовок",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;31;p17"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;32;p17"
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "name": "Пустой слайд",
+      "placeholders": [
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;34;p18"
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "name": "Объект с подписью",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;36;p19"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;37;p19"
+        },
+        {
+          "idx": 2,
+          "type": "2",
+          "name": "Google Shape;38;p19"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;39;p19"
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "name": "Рисунок с подписью",
+      "placeholders": [
+        {
+          "idx": 0,
+          "type": "1",
+          "name": "Google Shape;41;p20"
+        },
+        {
+          "idx": 2,
+          "type": "18",
+          "name": "Google Shape;42;p20"
+        },
+        {
+          "idx": 1,
+          "type": "2",
+          "name": "Google Shape;43;p20"
+        },
+        {
+          "idx": 12,
+          "type": "13",
+          "name": "Google Shape;44;p20"
+        }
+      ]
+    }
+  ],
+  "slides": [
+    {
+      "num": 1,
+      "layout": "TITLE_AND_BODY",
+      "texts": [
+        "Номер (12)",
+        "Заголовок (0) | Подзаголовок (1)"
+      ]
+    },
+    {
+      "num": 2,
+      "layout": "TITLE_AND_BODY",
+      "texts": [
+        "Заголовок (0)",
+        "Текст/буллетс (1)",
+        "Номер (12)"
+      ]
+    },
+    {
+      "num": 3,
+      "layout": "TITLE_AND_BODY",
+      "texts": [
+        "заголовок (0)",
+        "Номер(12)",
+        "текст (1)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,164 @@
+[
+  {
+    "index": 0,
+    "name": "TITLE_AND_BODY",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 1,
+    "name": "TITLE",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 2,
+    "name": "Заголовок раздела",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 3,
+    "name": "Два объекта",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 4,
+    "name": "Сравнение",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 2,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 5,
+    "name": "Только заголовок",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 6,
+    "name": "Пустой слайд",
+    "placeholders": [
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 7,
+    "name": "Объект с подписью",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 2,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  },
+  {
+    "index": 8,
+    "name": "Рисунок с подписью",
+    "placeholders": [
+      {
+        "idx": 0,
+        "type": "1"
+      },
+      {
+        "idx": 2,
+        "type": "18"
+      },
+      {
+        "idx": 1,
+        "type": "2"
+      },
+      {
+        "idx": 12,
+        "type": "13"
+      }
+    ]
+  }
+]

@@ -9,6 +9,7 @@ from typing import Dict, Optional
 from datetime import datetime
 
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram.error import TimedOut, NetworkError
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -20,7 +21,7 @@ from telegram.ext import (
 
 from app.core.model_manager import ModelManager
 from app.literature.processor import get_pdf_processor
-from app.generation.generator_v3 import get_optimized_content_generator
+from app.generation.generator_v4 import get_production_content_generator
 
 # Configure logging
 logging.basicConfig(
@@ -56,10 +57,71 @@ class KPFUBot:
         await self.model_manager.initialize()
         
         self.pdf_processor = get_pdf_processor()
-        self.generator = await get_optimized_content_generator()
+        self.generator = await get_production_content_generator()
         await self.generator.initialize(self.model_manager, self.pdf_processor)
         
         logger.info("✓ Backend initialized")
+
+    async def _safe_reply_text(
+        self,
+        update: Update,
+        text: str,
+        *,
+        parse_mode: Optional[str] = None,
+        retries: int = 3,
+        base_delay: float = 1.0
+    ) -> bool:
+        """Send message with retries for transient Telegram network issues."""
+        if not update.message:
+            return False
+
+        for attempt in range(1, retries + 1):
+            try:
+                await update.message.reply_text(text, parse_mode=parse_mode)
+                return True
+            except (TimedOut, NetworkError) as e:
+                if attempt == retries:
+                    logger.error(f"reply_text failed after {retries} attempts: {e}")
+                    return False
+                await asyncio.sleep(base_delay * attempt)
+            except Exception as e:
+                logger.error(f"reply_text failed (non-retryable): {e}")
+                return False
+
+        return False
+
+    async def _safe_send_document(
+        self,
+        context: ContextTypes.DEFAULT_TYPE,
+        chat_id: int,
+        filepath: Path,
+        filename: str,
+        caption: str,
+        *,
+        retries: int = 3,
+        base_delay: float = 1.0
+    ) -> bool:
+        """Send document with retries for transient Telegram network issues."""
+        for attempt in range(1, retries + 1):
+            try:
+                with open(filepath, 'rb') as f:
+                    await context.bot.send_document(
+                        chat_id=chat_id,
+                        document=f,
+                        filename=filename,
+                        caption=caption
+                    )
+                return True
+            except (TimedOut, NetworkError) as e:
+                if attempt == retries:
+                    logger.error(f"send_document failed after {retries} attempts: {e}")
+                    return False
+                await asyncio.sleep(base_delay * attempt)
+            except Exception as e:
+                logger.error(f"send_document failed (non-retryable): {e}")
+                return False
+
+        return False
     
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Start command - begin conversation"""
@@ -304,18 +366,21 @@ class KPFUBot:
                     )
                     return
             
-            await update.message.reply_text("✓ Книги инициализированы")
+            await self._safe_reply_text(update, "✓ Книги инициализированы")
             
-            # Generate lectures
+            # Generate packages (lecture + lab + self-check)
             book_ids = [book['id'] for book in session['books']]
             generated_lectures = []
+            generated_labs = 0
+            generated_selfchecks = 0
             
             for i, theme in enumerate(session['themes'], 1):
-                await update.message.reply_text(
-                    f"📝 Генерация лекции {i}/{len(session['themes'])}: {theme}"
+                await self._safe_reply_text(
+                    update,
+                    f"🧩 Генерация пакета {i}/{len(session['themes'])}: {theme}"
                 )
                 
-                result = await self.generator.generate_lecture_optimized(
+                result = await self.generator.generate_package_optimized(
                     theme=theme,
                     book_ids=book_ids,
                     rpd_data={
@@ -327,37 +392,75 @@ class KPFUBot:
                 )
                 
                 if result.success:
+                    safe_theme = theme.replace(' ', '_')
                     # Save lecture
-                    filename = f"lecture_{i:02d}_{theme.replace(' ', '_')}.md"
-                    filepath = self.books_dir / f"{user_id}_{filename}"
+                    lecture_filename = f"lecture_{i:02d}_{safe_theme}.md"
+                    lecture_filepath = self.books_dir / f"{user_id}_{lecture_filename}"
                     
-                    with open(filepath, 'w', encoding='utf-8') as f:
-                        f.write(result.content)
+                    with open(lecture_filepath, 'w', encoding='utf-8') as f:
+                        f.write(result.lecture_content)
+
+                    # Save lab
+                    lab_filename = f"lab_{i:02d}_{safe_theme}.md"
+                    lab_filepath = self.books_dir / f"{user_id}_{lab_filename}"
+                    with open(lab_filepath, 'w', encoding='utf-8') as f:
+                        f.write(result.lab_content)
+
+                    # Save self-check
+                    selfcheck_filename = f"selfcheck_{i:02d}_{safe_theme}.md"
+                    selfcheck_filepath = self.books_dir / f"{user_id}_{selfcheck_filename}"
+                    with open(selfcheck_filepath, 'w', encoding='utf-8') as f:
+                        f.write(result.selfcheck_content)
                     
                     generated_lectures.append({
                         'theme': theme,
-                        'filename': filename,
-                        'filepath': filepath,
-                        'words': len(result.content.split()),
+                        'filename': lecture_filename,
+                        'filepath': lecture_filepath,
+                        'words': len(result.lecture_content.split()),
                         'time': result.generation_time_seconds
                     })
+                    generated_labs += 1
+                    generated_selfchecks += 1
                     
-                    await update.message.reply_text(
-                        f"✓ Лекция {i} готова: {len(result.content.split())} слов, "
-                        f"{result.generation_time_seconds:.1f}с"
+                    await self._safe_reply_text(
+                        update,
+                        f"✓ Пакет {i} готов: лекция ({len(result.lecture_content.split())} слов), "
+                        f"лабораторная и самопроверка; {result.generation_time_seconds:.1f}с"
                     )
                     
                     # Send lecture file
-                    with open(filepath, 'rb') as f:
-                        await context.bot.send_document(
-                            chat_id=update.effective_chat.id,
-                            document=f,
-                            filename=filename,
-                            caption=f"📄 Лекция {i}: {theme}"
-                        )
+                    await self._safe_send_document(
+                        context,
+                        update.effective_chat.id,
+                        lecture_filepath,
+                        lecture_filename,
+                        f"📄 Лекция {i}: {theme}"
+                    )
+                    await self._safe_send_document(
+                        context,
+                        update.effective_chat.id,
+                        lab_filepath,
+                        lab_filename,
+                        f"🧪 Лабораторная {i}: {theme}"
+                    )
+                    await self._safe_send_document(
+                        context,
+                        update.effective_chat.id,
+                        selfcheck_filepath,
+                        selfcheck_filename,
+                        f"📝 Самопроверка {i}: {theme}"
+                    )
                 else:
-                    await update.message.reply_text(
-                        f"❌ Ошибка генерации лекции {i}: {result.error}"
+                    # generator_v2/v3 return `errors` (list), not `error` (single string)
+                    err_text = ""
+                    if hasattr(result, "errors") and result.errors:
+                        err_text = "; ".join([str(e) for e in result.errors if e])
+                    elif hasattr(result, "error"):
+                        err_text = str(getattr(result, "error"))
+                    
+                    await self._safe_reply_text(
+                        update,
+                        f"❌ Ошибка генерации пакета {i}: {err_text or 'unknown error'}"
                     )
             
             # Send summary
@@ -369,23 +472,26 @@ class KPFUBot:
 
 *Статистика:*
 - Лекций: {len(generated_lectures)}
+- Лабораторных: {generated_labs}
+- Самопроверок: {generated_selfchecks}
 - Всего слов: {total_words:,}
 - Время генерации: {total_time:.1f}с ({total_time/60:.1f} мин)
 - Среднее время: {total_time/len(generated_lectures):.1f}с на лекцию
 
 *Качество:*
-- Архитектура: Generator V3
+- Архитектура: Generator V4 (Production)
 - Точность: 82.4% (проверено)
 - Соответствие ФГОС: ✓
 
 Спасибо за использование! 🎓
 """
             
-            await update.message.reply_text(summary, parse_mode='Markdown')
+            await self._safe_reply_text(update, summary, parse_mode='Markdown')
             
         except Exception as e:
             logger.error(f"Error generating course: {e}", exc_info=True)
-            await update.message.reply_text(
+            await self._safe_reply_text(
+                update,
                 f"❌ Ошибка генерации: {str(e)}\n\n"
                 "Пожалуйста, попробуйте снова с /start"
             )

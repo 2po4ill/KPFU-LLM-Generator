@@ -2,9 +2,9 @@
 Content generation module
 """
 
-from .generator import ContentGenerator, get_content_generator
+from .generator_v4 import ProductionContentGenerator, get_production_content_generator
 
 __all__ = [
-    'ContentGenerator',
-    'get_content_generator'
+    'ProductionContentGenerator',
+    'get_production_content_generator',
 ]

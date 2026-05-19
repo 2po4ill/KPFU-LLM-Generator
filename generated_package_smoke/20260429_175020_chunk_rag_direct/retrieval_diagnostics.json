@@ -1,0 +1,28 @@
+{
+  "theme": "RSA",
+  "selected_chunks": 4,
+  "off_theme_chunk_rate": 0.0,
+  "redundancy_ratio": 0.0,
+  "effective_evidence_density": 1.0,
+  "gold_intent": {
+    "must_include_keywords": [
+      "rsa",
+      "открыт",
+      "закрыт",
+      "ключ",
+      "модул",
+      "шифр",
+      "теорема эйлера",
+      "ферма"
+    ],
+    "must_exclude_keywords": [
+      "oop",
+      "наследован",
+      "инкапсуляц",
+      "полиморф",
+      "html",
+      "css",
+      "javascript"
+    ]
+  }
+}

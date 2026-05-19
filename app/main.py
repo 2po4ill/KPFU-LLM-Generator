@@ -40,10 +40,15 @@ async def lifespan(app: FastAPI):
         logger.info("Running in development mode with mock services")
     
     try:
-        # Initialize database (skip if using mock services)
+        # Initialize database (skip if using mock services).
+        # If DB is temporarily unavailable, continue in degraded real mode
+        # so local non-mock generation can still run.
         if not use_mock_services:
-            from core.database import init_db
-            await init_db()
+            try:
+                from core.database import init_db
+                await init_db()
+            except Exception as db_ex:
+                logger.warning(f"Database init failed, continuing without DB: {db_ex}")
         
         # Initialize cache manager
         await cache_manager.initialize()

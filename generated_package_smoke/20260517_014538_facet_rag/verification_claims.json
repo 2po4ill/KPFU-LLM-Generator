@@ -1,0 +1,118 @@
+{
+  "summary": {
+    "claims_total": 18,
+    "claims_supported": 18,
+    "threshold": 0.4,
+    "confidence": 1.0
+  },
+  "claims": [
+    {
+      "claim": "Алгоритм генерации ключей RSA включает в себя несколько этапов для создания пары ключей — открытого и закрытого.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "В первом этапе выбираются два случайных числа p и q, которые должны быть простыми числами.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Модуль n рассчитывается как произведение p и q.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Для обеспечения безопасности алгоритма p и q должны иметь большие разряды и не должны быть близки друг к другу.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Второй этап включает в себя выбор случайного числа e, которое должно быть относительно простым по отношению к (p-1)(q-1).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Открытый ключ рассчитывается как n и e.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Закрытый ключ рассчитывается как n и d, где d является обратным числом e по модулю (p-1)(q-1).",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Метод RSA основан на использовании пары ключей: открытого ключа для шифрования и закрытого ключа для дешифрования.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Для обеспечения безопасности алгоритма важно выбрать случайные числа p и q с большими разрядами, а также e с большими разрядами и не близким к 1 или p-1.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Метод RSA основан на использовании большого простого числа для шифрования и дешифрования данных.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Число n представляет собой произведение двух больших простых чисел p и q, а число e — это экспонента.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Пользователь шифрует свои данные с помощью алгоритма RSA следующим образом: C = M^e mod n.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Получатель расшифровывает данные следующим образом: M = C^d mod n.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Системы с открытым ключом представляют собой тип криптографических алгоритмов, которые используют открытый ключ для шифрования и закрытый ключ для дешифрования.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Открытый ключ можно использовать для шифрования любых типов данных.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Системы с открытым ключом не зависят от секретных ключей или паролей.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Открытый ключ можно использовать в различных системах и приложениях.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    },
+    {
+      "claim": "Системы с открытым ключом относительно просты в использовании и не требуют сложных операций для их настройки.",
+      "max_cosine_similarity": 0.9999999999999999,
+      "best_page_number": 15,
+      "supported": true
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "theme": "Уязвимости, угрозы, атаки и их классификации.",
+  "pdf_path": "app\\cache\\books\\d830d4c7ca94.pdf",
+  "slide_count": 10,
+  "slides": [
+    {
+      "title": "Триада информационной безопасности",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0007\\p0007_snapshot.png",
+      "image_note": "стр. 7",
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "title": "Ключевые понятия",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": []
+    },
+    {
+      "title": "Классификация уязвимостей",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0008\\p0008_snapshot.png",
+      "image_note": "стр. 8",
+      "source_pages": [
+        8
+      ]
+    },
+    {
+      "title": "Классификация угроз",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0009\\p0009_snapshot.png",
+      "image_note": "стр. 9",
+      "source_pages": [
+        9
+      ]
+    },
+    {
+      "title": "Классификация атак",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0010\\p0010_snapshot.png",
+      "image_note": "стр. 10",
+      "source_pages": [
+        10
+      ]
+    },
+    {
+      "title": "Модель ATT&CK: тактики",
+      "image_kind": "mermaid",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\mermaid\\slide_1262169.png",
+      "image_note": "mermaid diagram",
+      "source_pages": []
+    },
+    {
+      "title": "Аудит действий пользователей (UAM)",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0007\\p0007_snapshot.png",
+      "image_note": "стр. 7",
+      "source_pages": [
+        7
+      ]
+    },
+    {
+      "title": "Техники корреляции событий",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": []
+    },
+    {
+      "title": "Сценарий атаки: фишинг → экfiltration",
+      "image_kind": "mermaid",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\mermaid\\slide_1196921.png",
+      "image_note": "mermaid diagram",
+      "source_pages": []
+    },
+    {
+      "title": "Практики снижения риска",
+      "image_kind": "page_snapshot",
+      "image_path": "app\\cache\\books\\presentation\\d830d4c7ca94\\11b4792011c7\\page_0011\\p0011_snapshot.png",
+      "image_note": "стр. 11",
+      "source_pages": [
+        11
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "theme": "Тема 2. Уязвимости, угрозы, атаки и их классификации",
+  "selected_chunks": 18,
+  "priority_source_chunks": 0,
+  "off_theme_chunk_rate": 0.1667,
+  "effective_evidence_density": 0.8333,
+  "gold_intent": {
+    "must_include_keywords": [
+      "уязвим",
+      "угроз",
+      "атак",
+      "классификац",
+      "конфиденциальн",
+      "целостн",
+      "доступност",
+      "cve",
+      "cvss",
+      "stride",
+      "риск"
+    ],
+    "must_exclude_keywords": [
+      "rsa",
+      "эйлер",
+      "модул",
+      "oop",
+      "наследован",
+      "html",
+      "css"
+    ]
+  }
+}

@@ -19,6 +19,7 @@ class LectureTheme:
     order: int
     hours: float
     description: Optional[str] = None
+    subtopics: Optional[List[Dict[str, Any]]] = None
 
 
 @dataclass
@@ -191,23 +192,44 @@ JSON:"""
         )
         
         try:
-            # Extract basic information
-            basic_info = await self._extract_basic_info(raw_text)
+            from rpd.section_parser import parse_rpd_sections
+
+            structured = parse_rpd_sections(raw_text)
+
+            # Basic info: FOS block first, then LLM / regex fallback
+            fos_basic = structured.get("basic_info") or {}
+            llm_basic = await self._extract_basic_info(raw_text) or {}
+            basic_info = {**llm_basic, **{k: v for k, v in fos_basic.items() if v}}
+
             if basic_info:
-                rpd_data.subject_title = basic_info.get('subject_title', '')
-                rpd_data.academic_degree = basic_info.get('academic_degree', 'bachelor')
-                rpd_data.profession = basic_info.get('profession', '')
-                rpd_data.total_hours = basic_info.get('total_hours', 0)
-                rpd_data.department = basic_info.get('department')
-                rpd_data.faculty = basic_info.get('faculty')
-                rpd_data.year = basic_info.get('year')
-                rpd_data.semester = basic_info.get('semester')
-            
-            # Extract lecture themes
-            lecture_themes = await self._extract_lecture_themes(raw_text)
+                rpd_data.subject_title = basic_info.get("subject_title", "") or rpd_data.subject_title
+                rpd_data.academic_degree = basic_info.get("academic_degree", "bachelor")
+                rpd_data.profession = basic_info.get("profession", "") or rpd_data.profession
+                rpd_data.total_hours = basic_info.get("total_hours", 0) or rpd_data.total_hours
+                rpd_data.department = basic_info.get("department")
+                rpd_data.faculty = basic_info.get("faculty")
+                rpd_data.year = basic_info.get("year")
+                rpd_data.semester = basic_info.get("semester")
+
+            # Themes: section 4.2 «Тема N.» (preferred), then LLM / fallback
+            lecture_themes = structured.get("lecture_themes") or []
+            if len(lecture_themes) < 2:
+                extra = await self._extract_lecture_themes(raw_text) or []
+                seen_orders = {t.get("order") for t in lecture_themes}
+                for t in extra:
+                    if t.get("order") not in seen_orders:
+                        lecture_themes.append(t)
+                        seen_orders.add(t.get("order"))
             if lecture_themes:
                 rpd_data.lecture_themes = [
-                    LectureTheme(**theme) for theme in lecture_themes
+                    LectureTheme(
+                        title=theme.get("title", ""),
+                        order=int(theme.get("order", 0) or 0),
+                        hours=float(theme.get("hours", 2.0) or 2.0),
+                        description=theme.get("description"),
+                        subtopics=theme.get("subtopics"),
+                    )
+                    for theme in sorted(lecture_themes, key=lambda x: x.get("order", 0))
                 ]
             
             # Extract lab examples
@@ -373,18 +395,28 @@ JSON:"""
             'total_hours': 0
         }
         
-        # Extract subject title (look for common patterns)
-        title_patterns = [
-            r'дисциплин[аы]?\s*[:\-]?\s*[«"]?([^«»"\n]+)[«"]?',
-            r'предмет\s*[:\-]?\s*[«"]?([^«»"\n]+)[«"]?',
-            r'курс\s*[:\-]?\s*[«"]?([^«»"\n]+)[«"]?'
-        ]
-        
-        for pattern in title_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                result['subject_title'] = match.group(1).strip()
-                break
+        from rpd.section_parser import parse_fos_header_block
+
+        fos = parse_fos_header_block(text)
+        if fos.get("subject_title"):
+            result["subject_title"] = fos["subject_title"]
+        if fos.get("profession"):
+            result["profession"] = fos["profession"]
+        if fos.get("academic_degree"):
+            result["academic_degree"] = fos["academic_degree"]
+        if fos.get("year"):
+            result["year"] = fos["year"]
+
+        if not result["subject_title"]:
+            title_patterns = [
+                r"дисциплин[аы]?\s*[:\-]?\s*[«\"]?([^«»\"\n]+)[«\"]?",
+                r"предмет\s*[:\-]?\s*[«\"]?([^«»\"\n]+)[«\"]?",
+            ]
+            for pattern in title_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    result["subject_title"] = match.group(1).strip()
+                    break
         
         # Extract academic degree
         if any(word in text.lower() for word in ['магистр', 'master']):
@@ -392,18 +424,16 @@ JSON:"""
         elif any(word in text.lower() for word in ['аспирант', 'phd', 'докторант']):
             result['academic_degree'] = 'phd'
         
-        # Extract profession/direction
-        profession_patterns = [
-            r'направлени[ею]\s+подготовки\s*[:\-]?\s*([^\n]+)',
-            r'специальность\s*[:\-]?\s*([^\n]+)',
-            r'профиль\s*[:\-]?\s*([^\n]+)'
-        ]
-        
-        for pattern in profession_patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
-            if match:
-                result['profession'] = match.group(1).strip()
-                break
+        if not result["profession"]:
+            profession_patterns = [
+                r"направлени[ею]\s+подготовки\s*[:\-]?\s*([^\n]+)",
+                r"специальность\s*[:\-]?\s*([^\n]+)",
+            ]
+            for pattern in profession_patterns:
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    result["profession"] = match.group(1).strip()
+                    break
         
         # Extract total hours
         hours_patterns = [
@@ -421,36 +451,17 @@ JSON:"""
         return result
     
     def _extract_lecture_themes_fallback(self, text: str) -> List[Dict[str, Any]]:
-        """Fallback rule-based extraction for lecture themes"""
-        themes = []
-        
-        # Look for lecture sections
-        lecture_patterns = [
-            r'тема\s+(\d+)\.?\s*([^\n]+)',
-            r'лекция\s+(\d+)\.?\s*([^\n]+)',
-            r'(\d+)\.?\s*([^\n]+?)\s*\((\d+)\s*час'
-        ]
-        
-        for pattern in lecture_patterns:
-            matches = re.finditer(pattern, text, re.IGNORECASE)
-            for match in matches:
-                if len(match.groups()) >= 2:
-                    order = int(match.group(1))
-                    title = match.group(2).strip()
-                    hours = 2.0  # Default hours
-                    
-                    if len(match.groups()) >= 3:
-                        try:
-                            hours = float(match.group(3))
-                        except ValueError:
-                            pass
-                    
-                    themes.append({
-                        'title': title,
-                        'order': order,
-                        'hours': hours
-                    })
-        
+        """Fallback rule-based extraction for lecture themes."""
+        from rpd.section_parser import parse_lecture_themes_from_section_42
+
+        themes = parse_lecture_themes_from_section_42(text)
+        if themes:
+            return themes
+
+        for match in re.finditer(r"тема\s+(\d+)\s*\.\s*([^\n]+)", text, re.IGNORECASE):
+            order = int(match.group(1))
+            title = match.group(2).strip().rstrip(".")
+            themes.append({"title": f"Тема {order}. {title}", "order": order, "hours": 2.0})
         return themes
     
     def _extract_lab_examples_fallback(self, text: str) -> List[Dict[str, Any]]:

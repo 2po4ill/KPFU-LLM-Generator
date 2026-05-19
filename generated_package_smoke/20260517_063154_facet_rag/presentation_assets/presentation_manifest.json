@@ -1,0 +1,28 @@
+{
+  "theme": "RSA",
+  "pdf_path": "..\\uploaded_books\\mzi.pdf",
+  "slide_count": 3,
+  "slides": [
+    {
+      "title": "Вспомогательные алгоритмы: генерация простых и расширенный Евклид",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": null
+    },
+    {
+      "title": "Генерация открытого и закрытого ключей RSA",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": null
+    },
+    {
+      "title": "Группы по умножению и теорема Лагранжа",
+      "image_kind": "none",
+      "image_path": null,
+      "image_note": "",
+      "source_pages": null
+    }
+  ]
+}

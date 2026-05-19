@@ -1,0 +1,19 @@
+{
+  "slides": [
+    {
+      "layout": "title",
+      "title": "RSA",
+      "subtitle": "Информационная безопасность"
+    },
+    {
+      "layout": "content",
+      "title": "Основные концепции",
+      "bullets": [
+        "*Основные концепции: RSA**"
+      ],
+      "image": {
+        "strategy": "none"
+      }
+    }
+  ]
+}
