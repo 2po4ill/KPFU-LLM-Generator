@@ -1,6 +1,7 @@
-﻿const storage = {
-  apiBase: "rpd_ui_api_base",
-  apiKey: "rpd_ui_api_key",
+﻿/** Fixed production API (Tuna tunnel). */
+const API_BASE_URL = "https://llm-generator.ru.tuna.am/api/v1";
+
+const storage = {
   fingerprint: "rpd_ui_fingerprint",
 };
 
@@ -55,13 +56,8 @@ function updateStepPills(hasFp) {
 
   [p1, p2, p3].forEach((el) => el.classList.remove("is-active", "is-done"));
 
-  const apiOk = Boolean($("apiBase").value.trim());
-  if (apiOk) p1.classList.add("is-done");
-
   if (hasFp) {
-    p2.classList.add("is-done");
-    p3.classList.add("is-active");
-  } else if (apiOk) {
+    p1.classList.add("is-done");
     p2.classList.add("is-active");
   } else {
     p1.classList.add("is-active");
@@ -79,21 +75,15 @@ function hasSelectedTheme() {
 }
 
 function headersJson() {
-  const h = { "Content-Type": "application/json" };
-  const k = $("apiKey").value.trim();
-  if (k) h["X-API-Key"] = k;
-  return h;
+  return { "Content-Type": "application/json" };
 }
 
 function headersEmpty() {
-  const h = {};
-  const k = $("apiKey").value.trim();
-  if (k) h["X-API-Key"] = k;
-  return h;
+  return {};
 }
 
 function apiBase() {
-  return $("apiBase").value.replace(/\/$/, "");
+  return API_BASE_URL;
 }
 window.apiBase = apiBase;
 window.headersJson = headersJson;
@@ -117,19 +107,13 @@ function log(obj) {
 }
 
 function saveUiState() {
-  localStorage.setItem(storage.apiBase, $("apiBase").value.trim());
-  localStorage.setItem(storage.apiKey, $("apiKey").value.trim());
   if (currentFingerprint) {
     localStorage.setItem(storage.fingerprint, currentFingerprint);
   }
 }
 
 function restoreUiState() {
-  const base = localStorage.getItem(storage.apiBase);
-  const key = localStorage.getItem(storage.apiKey);
   const fp = localStorage.getItem(storage.fingerprint);
-  if (base) $("apiBase").value = base;
-  if (key) $("apiKey").value = key;
   if (fp) {
     currentFingerprint = fp;
     $("rpdId").textContent = fp;
@@ -315,11 +299,6 @@ function bindFileUploadUi() {
   });
 }
 
-$("apiBase").addEventListener("change", () => {
-  saveUiState();
-  updateStepPills(Boolean(currentFingerprint));
-});
-$("apiKey").addEventListener("change", saveUiState);
 $("themeSelect").addEventListener("change", () => setState(currentState));
 
 $("btnUpload").onclick = async () => {

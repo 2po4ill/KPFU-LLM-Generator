@@ -1,5 +1,8 @@
 # KPFU LLM Educational Content Generator
 
+> **Веб-интерфейс (GitHub Pages):** https://2po4ill.github.io/KPFU-LLM-Generator/  
+> Это страница репозитория (README). Для работы с UI откройте ссылку выше и укажите адрес API-бэкенда в настройках.
+
 **Status**: ✅ **PRODUCTION READY** - Complete system with verified 82.4% accuracy  
 **Last Updated**: February 25, 2026
 
